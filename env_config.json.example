@@ -1,0 +1,8 @@
+{
+    "dbUsername": "foobar",
+    "dbPassword": "secretpass",
+    "dbHost": "cluster-name.1abcd.mongodb.net",
+    "dbName": "favoriteDb",
+    "dbUriPrefix": "mongodb+srv",
+    "expressPort": 1337
+}
