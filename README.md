@@ -6,7 +6,7 @@ The project is put together for a JavaScript framework course at Blekinge Instit
 ## Setup and installation directly on host computer
 First, make a copy of 'env_config.json.example' and name it 'env_config.json'. Open it and enter your database credentials/URI specifications and what port the Express app should be running on. 
 
-`cd` into this directory and run `npm install` to install all required dependencies. Then run `npm start` to start a development server. If you instead want to run a production server, run `npm prod`.
+`cd` into this directory and run `npm install` to install all required dependencies. Then run `npm start` to start a development server. If you instead want to run a production server, run `npm run production`.
 
 ## Deployment with local mongodb container using Docker
 Install [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/).
