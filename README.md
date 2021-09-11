@@ -4,7 +4,7 @@ This is an [Express](https://expressjs.com) project which is to serve API reques
 The project is put together for a JavaScript framework course at Blekinge Institute of Technology.
 
 ## Setup and installation directly on host computer
-First, make a copy of 'env_config.json.example' and name it 'env_config.json'. Open it and enter your database credentials/URI specifications and what port the Express app should be running on. 
+First, make a copy of 'env_config.json.example' and name it 'env_config.json'. Open it and enter your database credentials/URI specifications and what port the Express app should be running on. __Alternatively__, you can choose to define corresponding environment variables - check 'app.js' and 'routes/editor-api.js' to see what environment variables are needed then.
 
 `cd` into this directory and run `npm install` to install all required dependencies. Then run `npm start` to start a development server. If you instead want to run a production server, run `npm run production`.
 

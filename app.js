@@ -9,11 +9,15 @@ const cors = require('cors');
 // local imports
 const editorApi = require('./routes/editor-api');
 
-// environment/database configurations
-const envConfig = require('./env_config.json');
-
 const app = express();
-const port = envConfig.expressPort || 1337;
+
+let port;
+if (process.env.PORT) {
+    port = process.env.PORT;
+} else {
+    const envConfig = require('./env_config.json');
+    port = envConfig.expressPort;
+}
 
 // don't show the log when it is test
 if (process.env.NODE_ENV !== 'test') {

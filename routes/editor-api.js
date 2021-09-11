@@ -1,8 +1,22 @@
-const envConfig = require('../env_config.json');
 const dbFuns = require('../src/db-functions.js');
 const express = require('express');
 
 const router = express.Router();
+
+let envConfig;
+
+
+if (process.env.DB_USERNAME) {
+    envConfig = {
+        dbUsername: process.env.DB_USERNAME,
+        dbPassword: process.env.DB_PASSWORD,
+        dbHost: process.env.DB_HOST,
+        dbName: process.env.DB_NAME,
+        dbUriPrefix: process.env.DB_URI_PREFIX,
+    };
+} else {
+    envConfig = require('../env_config.json');
+}
 
 const dsn = `${envConfig.dbUriPrefix}://${envConfig.dbUsername}:${envConfig.dbPassword}@${envConfig.dbHost}/${envConfig.dbName}?retryWrites=true&w=majority`;
 const colName = 'editorDocs';
