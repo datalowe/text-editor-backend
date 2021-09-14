@@ -5,8 +5,11 @@ import fs from 'fs';
 const router = express.Router();
 
 let envConfig;
+let dsn;
 
-if (process.env.DB_USERNAME) {
+if (process.env.NODE_ENV === 'test') {
+    envConfig = {};
+} else if (process.env.DB_USERNAME) {
     envConfig = {
         dbUsername: process.env.DB_USERNAME,
         dbPassword: process.env.DB_PASSWORD,
@@ -17,9 +20,15 @@ if (process.env.DB_USERNAME) {
 } else {
     envConfig = JSON.parse(fs.readFileSync('./env_config.json'));
 }
-const dsn = `${envConfig.dbUriPrefix}://${envConfig.dbUsername}:` +
-    `${envConfig.dbPassword}@${envConfig.dbHost}/${envConfig.dbName}` +
-    `?retryWrites=true&w=majority`;
+
+if (process.env.NODE_ENV === 'test') {
+    dsn = '';
+} else {
+    dsn = `${envConfig.dbUriPrefix}://${envConfig.dbUsername}:` +
+        `${envConfig.dbPassword}@${envConfig.dbHost}/${envConfig.dbName}` +
+        `?retryWrites=true&w=majority`;
+}
+
 
 const colName = 'editorDocs';
 
