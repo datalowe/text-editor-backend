@@ -1,5 +1,7 @@
-const mongo = require('mongodb').MongoClient;
-const ObjectId = require('mongodb').ObjectId;
+import mongodb from 'mongodb';
+
+const mongo = mongodb.MongoClient;
+const ObjectId = mongodb.ObjectId;
 
 /**
   * Send a document to a collection.
@@ -12,9 +14,12 @@ const ObjectId = require('mongodb').ObjectId;
   *
   * @throws Error when database operation fails.
   *
-  * @return {Promise<String>} String holding generated document _id.
+  * @return {Promise<Object>} Object holding generated document _id.
   */
   async function sendDocToCollection(dsn, colName, newDoc) {
+    if (process.env.NODE_ENV === 'test') {
+      dsn = process.env.MONGO_URI;
+    }
     const client  = await mongo.connect(dsn);
     const db = client.db();
     const col = db.collection(colName);
@@ -38,6 +43,9 @@ const ObjectId = require('mongodb').ObjectId;
   * @return {Promise<Array<Object>>} Array of objects representing documents in collection.
   */
  async function getAllDocsInCollection(dsn, colName) {
+  if (process.env.NODE_ENV === 'test') {
+    dsn = process.env.MONGO_URI;
+  }
   const client  = await mongo.connect(dsn);
   const db = client.db();
   const col = db.collection(colName);
@@ -62,12 +70,13 @@ const ObjectId = require('mongodb').ObjectId;
   * @return {Promise<Object>} Object representing matching document in collection.
   */
  async function getSingleDocInCollection(dsn, colName, id) {
+  if (process.env.NODE_ENV === 'test') {
+    dsn = process.env.MONGO_URI;
+  }
   const client  = await mongo.connect(dsn);
   const db = client.db();
   const col = db.collection(colName);
   const res = await col.findOne({'_id': ObjectId(id)});
-
-  console.log(res);
 
   await client.close();
 
@@ -89,6 +98,9 @@ const ObjectId = require('mongodb').ObjectId;
   * @return {Promise<UpdateResult>} Results of update.
   */
  async function updateSingleDocInCollection(dsn, colName, updatedDoc) {
+  if (process.env.NODE_ENV === 'test') {
+    dsn = process.env.MONGO_URI;
+  }
   const client  = await mongo.connect(dsn);
   const db = client.db();
   const col = db.collection(colName);
@@ -109,10 +121,9 @@ const ObjectId = require('mongodb').ObjectId;
   return res;
 }
 
-
-module.exports = {
-    "getAllDocsInCollection": getAllDocsInCollection,
-    "getSingleDocInCollection": getSingleDocInCollection,
-    "sendDocToCollection": sendDocToCollection,
-    "updateSingleDocInCollection": updateSingleDocInCollection
+export {
+  getAllDocsInCollection,
+  getSingleDocInCollection,
+  sendDocToCollection,
+  updateSingleDocInCollection
 };

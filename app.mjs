@@ -2,12 +2,13 @@
 // is deprecated:
 // https://stackoverflow.com/questions/66525078/bodyparser-is-deprecated
 // 3rd party dependencies
-const express = require("express");
-const morgan = require('morgan');
-const cors = require('cors');
+import express from 'express';
+import morgan from 'morgan';
+import cors from 'cors';
+import fs from 'fs';
 
 // local imports
-const editorApi = require('./routes/editor-api');
+import { editorRouter } from './routes/editor-api.mjs';
 
 const app = express();
 
@@ -15,7 +16,7 @@ let port;
 if (process.env.PORT) {
     port = process.env.PORT;
 } else {
-    const envConfig = require('./env_config.json');
+    const envConfig = JSON.parse(fs.readFileSync('./env_config.json'));
     port = envConfig.expressPort;
 }
 
@@ -31,7 +32,7 @@ app.use(cors());
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
 
-app.use('/editor-api', editorApi);
+app.use('/editor-api', editorRouter);
 
 // Add routes for 404 and error handling
 // Catch 404 and forward to error handler
@@ -59,4 +60,8 @@ app.use((err, req, res, next) => {
 });
 
 // Start up server
-app.listen(port, () => console.log(`Example API listening on port ${port}!`));
+export const server = app.listen(
+    port, 
+    () => console.log(`Text editor backend listening on port ${port}.`)
+);
+

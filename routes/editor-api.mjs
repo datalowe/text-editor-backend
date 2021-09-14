@@ -1,11 +1,10 @@
-const dbFuns = require('../src/db-functions.js');
-const express = require('express');
+import * as dbFuns from '../src/db-functions.mjs';
+import express from 'express';
+import fs from 'fs';
 
 const router = express.Router();
 
 let envConfig;
-
-
 if (process.env.DB_USERNAME) {
     envConfig = {
         dbUsername: process.env.DB_USERNAME,
@@ -15,10 +14,10 @@ if (process.env.DB_USERNAME) {
         dbUriPrefix: process.env.DB_URI_PREFIX,
     };
 } else {
-    envConfig = require('../env_config.json');
+    envConfig = JSON.parse(fs.readFileSync('./env_config.json'))
 }
-
 const dsn = `${envConfig.dbUriPrefix}://${envConfig.dbUsername}:${envConfig.dbPassword}@${envConfig.dbHost}/${envConfig.dbName}?retryWrites=true&w=majority`;
+
 const colName = 'editorDocs';
 
 router.get('/document', async function(req, res, next) {
@@ -28,9 +27,16 @@ router.get('/document', async function(req, res, next) {
 });
 
 router.get('/document/:id', async function(req, res, next) {
-    const searchResult = await dbFuns.getSingleDocInCollection(dsn, colName, req.params.id);
-
-    res.json(searchResult);
+    if ((typeof req.params.id === 'string') && (req.params.id.length === 24) ) {
+        const searchResult = await dbFuns.getSingleDocInCollection(dsn, colName, req.params.id);
+        if (searchResult == null) {
+            res.json({'error': 'matching_document_not_found'});
+            return;
+        }
+        res.json(searchResult);
+        return;
+    } 
+    res.json({'error': 'invalid_id'});
 });
 
 router.put('/document/:id', async function(req, res, next) {
@@ -82,4 +88,4 @@ router.post('/document', async function(req, res, next) {
     }
 });
 
-module.exports = router;
+export const editorRouter = router;
