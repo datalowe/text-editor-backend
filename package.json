@@ -2,11 +2,12 @@
   "name": "texted-backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
-    "start": "node app.js",
-    "mon": "nodemon app.js",
-    "production": "NODE_ENV='production' node app.js"
+    "start": "node app.mjs",
+    "mon": "nodemon app.mjs",
+    "production": "NODE_ENV='production' node app.mjs",
+    "test": "nyc mocha --timeout 60000 'test/*.mjs'"
   },
   "author": "",
   "license": "ISC",
@@ -17,6 +18,12 @@
     "morgan": "^1.10.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.12"
-  }
+    "chai": "^4.3.4",
+    "chai-http": "^4.3.0",
+    "mocha": "^9.1.1",
+    "mongodb-memory-server": "^7.4.0",
+    "nodemon": "^2.0.12",
+    "nyc": "^15.1.0"
+  },
+  "type": "module"
 }

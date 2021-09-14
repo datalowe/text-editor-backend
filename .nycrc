@@ -1,0 +1,23 @@
+{
+    "description": "",
+    "reporter": [
+        "html",
+        "text",
+        "clover"
+    ],
+    "include": [
+      "app.js",
+      "app.mjs",
+      "routes/*.mjs",
+      "routes/*.js",
+      "src/*.mjs",
+      "src/*.js"
+    ],
+    "exclude": [
+      "coverage/",
+      "mongo-entrypoint"
+    ],
+    "all": true,
+    "report-dir": "./build/coverage",
+    "temp-directory": "./build/.nyc_output"
+}
