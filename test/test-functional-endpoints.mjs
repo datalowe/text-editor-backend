@@ -22,6 +22,18 @@ chai.should();
 
 chai.use(chaiHttp);
 
+describe('invalid URL', () => {
+  it('should return a JSON object in body with error information', (done) => {
+    chai.request(server)
+      .get('/incorrect-url')
+      .end((err, res) => {
+        res.should.have.status(404);
+        res.body.should.be.an('object');
+        done();
+      });
+  });
+});
+
 describe('Editor API', () => {
   describe('GET /editor-api/document', () => {
       it(
