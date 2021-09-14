@@ -16,9 +16,9 @@ const ObjectId = mongodb.ObjectId;
   *
   * @return {Promise<Object>} Object holding generated document _id.
   */
-  async function sendDocToCollection(dsn, colName, newDoc) {
+async function sendDocToCollection(dsn, colName, newDoc) {
     if (process.env.NODE_ENV === 'test') {
-      dsn = process.env.MONGO_URI;
+        dsn = process.env.MONGO_URI;
     }
     const client  = await mongo.connect(dsn);
     const db = client.db();
@@ -42,18 +42,18 @@ const ObjectId = mongodb.ObjectId;
   *
   * @return {Promise<Array<Object>>} Array of objects representing documents in collection.
   */
- async function getAllDocsInCollection(dsn, colName) {
-  if (process.env.NODE_ENV === 'test') {
-    dsn = process.env.MONGO_URI;
-  }
-  const client  = await mongo.connect(dsn);
-  const db = client.db();
-  const col = db.collection(colName);
-  const res = await col.find().toArray();
+async function getAllDocsInCollection(dsn, colName) {
+    if (process.env.NODE_ENV === 'test') {
+        dsn = process.env.MONGO_URI;
+    }
+    const client  = await mongo.connect(dsn);
+    const db = client.db();
+    const col = db.collection(colName);
+    const res = await col.find().toArray();
 
-  await client.close();
+    await client.close();
 
-  return res;
+    return res;
 }
 
 /**
@@ -69,18 +69,18 @@ const ObjectId = mongodb.ObjectId;
   *
   * @return {Promise<Object>} Object representing matching document in collection.
   */
- async function getSingleDocInCollection(dsn, colName, id) {
-  if (process.env.NODE_ENV === 'test') {
-    dsn = process.env.MONGO_URI;
-  }
-  const client  = await mongo.connect(dsn);
-  const db = client.db();
-  const col = db.collection(colName);
-  const res = await col.findOne({'_id': ObjectId(id)});
+async function getSingleDocInCollection(dsn, colName, id) {
+    if (process.env.NODE_ENV === 'test') {
+        dsn = process.env.MONGO_URI;
+    }
+    const client  = await mongo.connect(dsn);
+    const db = client.db();
+    const col = db.collection(colName);
+    const res = await col.findOne({'_id': ObjectId(id)});
 
-  await client.close();
+    await client.close();
 
-  return res;
+    return res;
 }
 
 /**
@@ -90,40 +90,40 @@ const ObjectId = mongodb.ObjectId;
   *
   * @param {string} dsn        DSN to connect to database.
   * @param {string} colName    Name of collection.
-  * @param {object} updatedDoc key-value object, including '_id', 'title' and 'body' 
+  * @param {object} updatedDoc key-value object, including '_id', 'title' and 'body'
   * with _id of document to update and new title/body values.
   *
   * @throws Error when database operation fails.
   *
   * @return {Promise<UpdateResult>} Results of update.
   */
- async function updateSingleDocInCollection(dsn, colName, updatedDoc) {
-  if (process.env.NODE_ENV === 'test') {
-    dsn = process.env.MONGO_URI;
-  }
-  const client  = await mongo.connect(dsn);
-  const db = client.db();
-  const col = db.collection(colName);
-  const res = await col.updateOne(
-    {
-      '_id': ObjectId(updatedDoc._id)
-    },
-    {
-      $set: {
-      'title': updatedDoc.title,
-      'body': updatedDoc.body
-      }
+async function updateSingleDocInCollection(dsn, colName, updatedDoc) {
+    if (process.env.NODE_ENV === 'test') {
+        dsn = process.env.MONGO_URI;
     }
-  );
+    const client  = await mongo.connect(dsn);
+    const db = client.db();
+    const col = db.collection(colName);
+    const res = await col.updateOne(
+        {
+            '_id': ObjectId(updatedDoc._id)
+        },
+        {
+            $set: {
+                'title': updatedDoc.title,
+                'body': updatedDoc.body
+            }
+        }
+    );
 
-  await client.close();
+    await client.close();
 
-  return res;
+    return res;
 }
 
 export {
-  getAllDocsInCollection,
-  getSingleDocInCollection,
-  sendDocToCollection,
-  updateSingleDocInCollection
+    getAllDocsInCollection,
+    getSingleDocInCollection,
+    sendDocToCollection,
+    updateSingleDocInCollection
 };

@@ -3,7 +3,6 @@ process.env.NODE_ENV = 'test';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import chai from 'chai';
 import chaiHttp from 'chai-http';
-import assert from 'assert';
 
 import { server } from '../app.mjs';
 import { sendDocToCollection } from '../src/db-functions.mjs';

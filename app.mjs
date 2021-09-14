@@ -13,10 +13,12 @@ import { editorRouter } from './routes/editor-api.mjs';
 const app = express();
 
 let port;
+
 if (process.env.PORT) {
     port = process.env.PORT;
 } else {
     const envConfig = JSON.parse(fs.readFileSync('./env_config.json'));
+
     port = envConfig.expressPort;
 }
 
@@ -39,6 +41,7 @@ app.use('/editor-api', editorRouter);
 // Put this last
 app.use((req, res, next) => {
     const err = new Error("Not Found");
+
     err.status = 404;
     next(err);
 });
@@ -61,7 +64,7 @@ app.use((err, req, res, next) => {
 
 // Start up server
 export const server = app.listen(
-    port, 
+    port,
     () => console.log(`Text editor backend listening on port ${port}.`)
 );
 

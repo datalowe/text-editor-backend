@@ -7,7 +7,8 @@
     "start": "node app.mjs",
     "mon": "nodemon app.mjs",
     "production": "NODE_ENV='production' node app.mjs",
-    "test": "nyc mocha --timeout 60000 'test/*.mjs'"
+    "test": "nyc mocha --timeout 60000 'test/*.mjs'",
+    "eslint": "eslint ."
   },
   "author": "",
   "license": "ISC",
@@ -20,6 +21,8 @@
   "devDependencies": {
     "chai": "^4.3.4",
     "chai-http": "^4.3.0",
+    "eslint": "^7.32.0",
+    "javascript-style-guide": "^1.0.1",
     "mocha": "^9.1.1",
     "mongodb-memory-server": "^7.4.0",
     "nodemon": "^2.0.12",
