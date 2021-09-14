@@ -7,12 +7,13 @@
     "start": "node app.mjs",
     "mon": "nodemon app.mjs",
     "production": "NODE_ENV='production' node app.mjs",
-    "test": "nyc mocha --timeout 60000 'test/*.mjs'",
+    "test": "c8 mocha --timeout 60000 'test/*.mjs'",
     "eslint": "eslint ."
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "c8": "^7.9.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "mongodb": "^4.1.1",
@@ -25,8 +26,7 @@
     "javascript-style-guide": "^1.0.1",
     "mocha": "^9.1.1",
     "mongodb-memory-server": "^7.4.0",
-    "nodemon": "^2.0.12",
-    "nyc": "^15.1.0"
+    "nodemon": "^2.0.12"
   },
   "type": "module"
 }

@@ -6,6 +6,8 @@
         "clover"
     ],
     "include": [
+      "test/*.js",
+      "test/*.mjs",
       "app.js",
       "app.mjs",
       "routes/*.mjs",
@@ -18,6 +20,7 @@
       "mongo-entrypoint"
     ],
     "all": true,
+    "useSpawnWrap": true,
     "report-dir": "./build/coverage",
     "temp-directory": "./build/.nyc_output"
 }
