@@ -15,7 +15,7 @@ const app = express();
 let port;
 
 if (process.env.NODE_ENV === 'test') {
-    port = 666;
+    port = 6666;
 } else if (process.env.PORT) {
     port = process.env.PORT;
 } else {
