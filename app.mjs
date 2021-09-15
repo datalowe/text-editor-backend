@@ -14,7 +14,9 @@ const app = express();
 
 let port;
 
-if (process.env.PORT) {
+if (process.env.NODE_ENV === 'test') {
+    port = 666;
+} else if (process.env.PORT) {
     port = process.env.PORT;
 } else {
     const envConfig = JSON.parse(fs.readFileSync('./env_config.json'));
