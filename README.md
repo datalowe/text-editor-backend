@@ -34,3 +34,6 @@ If you want to run the app as a Docker container, but don't want the database to
 * `example.com:port/editor-api/document/<document_id>`: GET. Returns a JSON-formatted body with a single object representing a matching text document in the database, including '_id', 'title' and 'body' fields.
 * `example.com:port/editor-api/document`: POST. Requires request to include a JSON-formatted body which has keys 'title' and 'body'. Returns a JSON-formatted body with a single object representing the created text document in the database, including '_id', 'title' and 'body' fields.
 * `example.com:port/editor-api/document/<document_id>`: PUT. Requires request to include a JSON-formatted body which has keys 'title' and 'body'. Returns a JSON-formatted body with a single object representing the updated text document in the database, including '_id', 'title' and 'body' fields.
+
+## socket.io events
+See 'app.mjs' for code related to how the `socket.io` package is used to accept and broadcast events related to document body updates.

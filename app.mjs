@@ -6,6 +6,8 @@ import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
 import fs from 'fs';
+import { Server } from 'socket.io';
+import { createServer } from 'http';
 
 // local imports
 import { editorRouter } from './routes/editor-api.mjs';
@@ -13,15 +15,21 @@ import { editorRouter } from './routes/editor-api.mjs';
 const app = express();
 
 let port;
+let clientUrls;
 
 if (process.env.NODE_ENV === 'test') {
     port = 6666;
+    clientUrls = [
+        "http://localhost:4200",
+    ];
 } else if (process.env.PORT) {
     port = process.env.PORT;
+    clientUrls = process.env.CLIENT_URLS.split(' ');
 } else {
     const envConfig = JSON.parse(fs.readFileSync('./env_config.json'));
 
     port = envConfig.expressPort;
+    clientUrls = envConfig.clientUrls;
 }
 
 // don't show the log when it is test
@@ -64,8 +72,34 @@ app.use((err, req, res, next) => {
     });
 });
 
+const httpServer = createServer(app);
+
+const io = new Server(httpServer, {
+    cors: {
+        origin: clientUrls,
+        methods: ["GET", "POST"]
+    }
+});
+
+io.sockets.on('connection', function(socket) {
+    socket.on('createRoom', function(room) {
+        socket.join(room.toString());
+    });
+
+    socket.on('leaveRoom', (room) => {
+        socket.leave(room.toString());
+    });
+
+    socket.on("docBodyUpdate", function (data) {
+        // note that this only broadcasts to all clients __except__
+        // the event origin.
+        socket.to(data._id.toString()).emit("docBodyUpdate", data);
+    });
+});
+
+
 // Start up server
-export const server = app.listen(
+export const server = httpServer.listen(
     port,
     () => console.log(`Text editor backend listening on port ${port}.`)
 );
