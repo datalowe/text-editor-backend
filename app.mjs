@@ -29,8 +29,9 @@ if (process.env.NODE_ENV === 'test') {
     const envConfig = JSON.parse(fs.readFileSync('./env_config.json'));
 
     port = envConfig.expressPort;
-    clientUrls = envConfig.clientUrls;
+    clientUrls = envConfig.clientUrls.length;
 }
+clientUrls = clientUrls.length == 1 ? clientUrls[0]: clientUrls;
 
 // don't show the log when it is test
 if (process.env.NODE_ENV !== 'test') {
@@ -91,6 +92,7 @@ io.sockets.on('connection', function(socket) {
     });
 
     socket.on("docBodyUpdate", function (data) {
+        console.log('broadcasting..', data._id);
         // note that this only broadcasts to all clients __except__
         // the event origin.
         socket.to(data._id.toString()).emit("docBodyUpdate", data);

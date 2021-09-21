@@ -13,7 +13,7 @@ First, make a copy of 'env_config.json.example' and name it 'env_config.json'. O
 ## Deployment with local mongodb container using Docker
 Install [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/).
 
-`cd` into this directory and run `docker compose`. This will first spin up a `mongodb` container. Once that's done, a container for this app is spun up. The app's image is based on the root directory Dockerfile.
+`cd` into this directory and run `docker compose up`. This will first spin up a `mongodb` container. Once that's done, a container for this app is spun up. The app's image is based on the root directory Dockerfile.
 
 The `mongodb` container is made accessible to the host environment - remove mongodb port binding in 'docker-compose.yaml' if this isn't something you want.
 

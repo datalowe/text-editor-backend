@@ -4,5 +4,8 @@
     "dbHost": "mongodb:27017",
     "dbName": "textEdDb",
     "dbUriPrefix": "mongodb",
-    "expressPort": 1337
+    "expressPort": 1337,
+    "clientUrls": [
+        "*"
+    ]
 }
