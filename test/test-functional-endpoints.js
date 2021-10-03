@@ -1,11 +1,11 @@
-process.env.NODE_ENV = 'test';
+'use strict';
 
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import chai from 'chai';
 import chaiHttp from 'chai-http';
 
-import { server } from '../app.mjs';
-import { sendDocToCollection } from '../src/db-functions.mjs';
+import { server } from '../dist/app.js';
+import { sendDocToCollection } from '../dist/src/db-functions.js';
 
 let mongoServer;
 

@@ -17,7 +17,7 @@ WORKDIR /backend/
 RUN npm install --save
 
 COPY env_config_local_docker.json /backend/env_config.json
-COPY app.mjs /backend/
+COPY app.ts /backend/
 COPY routes /backend/routes/
 COPY src /backend/src/
 COPY mongo-entrypoint /backend/mongo-entrypoint/

@@ -1,3 +1,4 @@
+'use strict';
 import mongodb from 'mongodb';
 
 const mongo = mongodb.MongoClient;
@@ -20,14 +21,14 @@ async function sendDocToCollection(dsn, colName, newDoc) {
     if (process.env.NODE_ENV === 'test') {
         dsn = process.env.MONGO_URI;
     }
-    const client  = await mongo.connect(dsn);
+    const client = await mongo.connect(dsn);
     const db = client.db();
     const col = db.collection(colName);
     const res = await col.insertOne(newDoc);
 
     await client.close();
 
-    return {'_id': res.insertedId.toHexString()};
+    return { _id: res.insertedId.toHexString() };
 }
 
 /**
@@ -46,7 +47,7 @@ async function getAllDocsInCollection(dsn, colName) {
     if (process.env.NODE_ENV === 'test') {
         dsn = process.env.MONGO_URI;
     }
-    const client  = await mongo.connect(dsn);
+    const client = await mongo.connect(dsn);
     const db = client.db();
     const col = db.collection(colName);
     const res = await col.find().toArray();
@@ -73,10 +74,10 @@ async function getSingleDocInCollection(dsn, colName, id) {
     if (process.env.NODE_ENV === 'test') {
         dsn = process.env.MONGO_URI;
     }
-    const client  = await mongo.connect(dsn);
+    const client = await mongo.connect(dsn);
     const db = client.db();
     const col = db.collection(colName);
-    const res = await col.findOne({'_id': ObjectId(id)});
+    const res = await col.findOne({ _id: new ObjectId(id) });
 
     await client.close();
 
@@ -101,17 +102,17 @@ async function updateSingleDocInCollection(dsn, colName, updatedDoc) {
     if (process.env.NODE_ENV === 'test') {
         dsn = process.env.MONGO_URI;
     }
-    const client  = await mongo.connect(dsn);
+    const client = await mongo.connect(dsn);
     const db = client.db();
     const col = db.collection(colName);
     const res = await col.updateOne(
         {
-            '_id': ObjectId(updatedDoc._id)
+            _id: new ObjectId(updatedDoc._id)
         },
         {
             $set: {
-                'title': updatedDoc.title,
-                'body': updatedDoc.body
+                title: updatedDoc.title,
+                body: updatedDoc.body
             }
         }
     );

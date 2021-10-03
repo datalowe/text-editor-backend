@@ -1,4 +1,5 @@
-import * as dbFuns from '../src/db-functions.mjs';
+'use strict';
+import * as dbFuns from '../src/db-functions.js';
 import express from 'express';
 import fs from 'fs';
 
@@ -15,10 +16,17 @@ if (process.env.NODE_ENV === 'test') {
         dbPassword: process.env.DB_PASSWORD,
         dbHost: process.env.DB_HOST,
         dbName: process.env.DB_NAME,
-        dbUriPrefix: process.env.DB_URI_PREFIX,
+        dbUriPrefix: process.env.DB_URI_PREFIX
     };
 } else {
-    envConfig = JSON.parse(fs.readFileSync('./env_config.json'));
+    envConfig = JSON.parse(
+        fs.readFileSync(
+            './env_config.json',
+            {
+                encoding: 'utf8'
+            }
+        )
+    );
 }
 
 if (process.env.NODE_ENV === 'test') {
@@ -26,9 +34,8 @@ if (process.env.NODE_ENV === 'test') {
 } else {
     dsn = `${envConfig.dbUriPrefix}://${envConfig.dbUsername}:` +
         `${envConfig.dbPassword}@${envConfig.dbHost}/${envConfig.dbName}` +
-        `?retryWrites=true&w=majority`;
+        '?retryWrites=true&w=majority';
 }
-
 
 const colName = 'editorDocs';
 
@@ -39,26 +46,26 @@ router.get('/document', async function(req, res) {
 });
 
 router.get('/document/:id', async function(req, res) {
-    if ((typeof req.params.id === 'string') && (req.params.id.length === 24) ) {
+    if ((typeof req.params.id === 'string') && (req.params.id.length === 24)) {
         const searchResult = await dbFuns.getSingleDocInCollection(dsn, colName, req.params.id);
 
         if (searchResult == null) {
-            res.json({'error': 'matching_document_not_found'});
+            res.json({ error: 'matching_document_not_found' });
             return;
         }
         res.json(searchResult);
         return;
     }
-    res.json({'error': 'invalid_id'});
+    res.json({ error: 'invalid_id' });
 });
 
 router.put('/document/:id', async function(req, res) {
     if (!('title' in req.body)) {
-        res.json({'error': 'missing_title'});
+        res.json({ error: 'missing_title' });
         return;
     }
     if (!('body' in req.body)) {
-        res.json({'error': 'missing_body'});
+        res.json({ error: 'missing_body' });
         return;
     }
     const updatedDoc = {
@@ -81,11 +88,11 @@ router.put('/document/:id', async function(req, res) {
 
 router.post('/document', async function(req, res) {
     if (!('title' in req.body)) {
-        res.json({'error': 'missing_title'});
+        res.json({ error: 'missing_title' });
         return;
     }
     if (!('body' in req.body)) {
-        res.json({'error': 'missing_body'});
+        res.json({ error: 'missing_body' });
         return;
     }
     const newDoc = {
@@ -95,8 +102,13 @@ router.post('/document', async function(req, res) {
     const sendResult = await dbFuns.sendDocToCollection(dsn, colName, newDoc);
 
     if ('_id' in sendResult) {
-        newDoc._id = sendResult._id;
-        res.json(newDoc);
+        const returnDoc = {
+            _id: sendResult._id,
+            title: req.body.title,
+            body: req.body.body
+        };
+
+        res.json(returnDoc);
     } else {
         res.json(sendResult);
     }

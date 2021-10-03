@@ -4,13 +4,13 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "node app.mjs",
-    "mon": "nodemon app.mjs",
-    "production": "NODE_ENV='production' node app.mjs",
-    "test": "c8 mocha --timeout 60000 'test/*.mjs'",
+    "start": "tsc && node dist/app.js",
+    "mon": "NODE_OPTIONS='--no-warnings --loader ts-node/esm' nodemon --watch './**/*.ts' --exec 'ts-node' app.ts",
+    "production": "tsc && NODE_ENV='production' node dist/app.js",
+    "test": "tsc && NODE_ENV='test' c8 mocha -r ts-node/register --timeout 60000 'test/*.js'",
     "eslint": "eslint ."
   },
-  "author": "",
+  "author": "Lowe Wilsson",
   "license": "ISC",
   "dependencies": {
     "c8": "^7.9.0",
@@ -21,13 +21,23 @@
     "socket.io": "^4.2.0"
   },
   "devDependencies": {
+    "@types/express": "^4.17.13",
+    "@types/mocha": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^4.32.0",
+    "@typescript-eslint/parser": "^4.32.0",
     "chai": "^4.3.4",
     "chai-http": "^4.3.0",
     "eslint": "^7.32.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.24.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^5.1.0",
     "javascript-style-guide": "^1.0.1",
     "mocha": "^9.1.1",
     "mongodb-memory-server": "^7.4.0",
-    "nodemon": "^2.0.12"
+    "nodemon": "^2.0.12",
+    "ts-node": "^10.2.1",
+    "typescript": "^4.4.3"
   },
   "type": "module",
   "optionalDependencies": {
