@@ -6,11 +6,18 @@ This is an [Express](https://expressjs.com) project which is to serve API reques
 The project is put together for a JavaScript framework course at Blekinge Institute of Technology.
 
 ## Setup and installation directly on host computer
-First, make a copy of 'env_config.json.example' and name it 'env_config.json'. Open it and enter your database credentials/URI specifications and what port the Express app should be running on. __Alternatively__, you can choose to define corresponding environment variables - check 'app.js' and 'routes/editor-api.js' to see what environment variables are needed then.
+### Development mode
+First, make a copy of the hidden file '.env.example' and name it '.env'. Open it and enter your database credentials/URI specifications and what port the Express app should be running on. 
 
-`cd` into this directory and run `npm install` to install all required dependencies. Then run `npm start` to start a development server. If you instead want to run a production server, run `npm run production`.
+`cd` into this directory and run `npm install` to install all required dependencies. Then run `npm start` to start a development server.
 
-## Deployment with local mongodb container using Docker
+### Production mode
+When running the app in production, it is assumed that environment variables (the ones listed in '.env.example') have already been defined. Use appropriate methods for your deployment service/environment to define them.
+
+`cd` into this directory and run `npm install` to install all required dependencies. Then run `npm run production` to start a production server.
+
+## Deployment using Docker
+### With local mongodb container 
 Install [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/).
 
 `cd` into this directory and run `docker compose up`. This will first spin up a `mongodb` container. Once that's done, a container for this app is spun up. The app's image is based on the root directory Dockerfile.
@@ -19,15 +26,15 @@ The `mongodb` container is made accessible to the host environment - remove mong
 
 Note that by default, no container/database data are persisted to outside of the container, meaning all database entries will be lost when killing the container. If you want data to be persisted to outside of the container, you can uncomment data storage/volume-related lines in 'docker-compose.yaml'. 
 
-Also note that if you change any of the database configuration variables (in 'env_config_local_docker.json' or 'docker-compose.yaml'), you will likely need to also update the 'mongo-entrypoint/entrypoint.js' script. This is an inconvenience that [could be solved](https://stackoverflow.com/questions/64606674/how-can-i-pass-environment-variables-to-mongo-docker-entrypoint-initdb-d) by using only environment variables and a .sh script rather than a .js script, if you want to spend time on that.
+Also note that if you change any of the environment variables in '.env.local.docker' you will also need to update environment variables defined 'docker-compose.yaml', and vice versa.
 
-## Deployment with other mongodb database using Docker
+### With other mongodb database using Docker
 If you want to run the app as a Docker container, but don't want the database to also be handled by Docker: 
-1. Create an 'env_config.json' file as described in 'Setup and installation directly on host computer'. 
-2. Open up the Dockerfile and change the line `COPY env_config_local_docker.json /backend/env_config.json` to `COPY env_config.json /backend/env_config.json`.
-3. Update 'docker-compose.yaml' as necessary, eg changing the port binding if you modified the `expressPort` variable's value in the Dockerfile.
-3. `cd` to the the directory and run `docker compose build .` (or `docker-compose build`, depending on your environment).
-4. Run `docker compose .`.
+1. Create an '.env' file as described in 'Setup and installation directly on host computer'. 
+2. Open up the Dockerfile and change the line `COPY .env.local.docker /backend/.env` to `COPY .env /backend/env_config.json`.
+3. Comment out lines related to the mongodb-container in 'docker-compose.yaml', including the `depends_on` lines for the 'web' service/container.
+3. `cd` to the root directory and run `docker compose build` (or `docker-compose build`, depending on your environment).
+4. Run `docker compose up`.
 
 ## API routes
 * `example.com:port/editor-api/document`: GET. Returns a JSON-formatted body with an array holding all text documents in the database, including '_id', 'title' and 'body' fields for each one.
@@ -36,4 +43,4 @@ If you want to run the app as a Docker container, but don't want the database to
 * `example.com:port/editor-api/document/<document_id>`: PUT. Requires request to include a JSON-formatted body which has keys 'title' and 'body'. Returns a JSON-formatted body with a single object representing the updated text document in the database, including '_id', 'title' and 'body' fields.
 
 ## socket.io events
-See 'app.mjs' for code related to how the `socket.io` package is used to accept and broadcast events related to document body updates.
+See 'app.ts' for code related to how the `socket.io` package is used to accept and broadcast events related to document body updates.

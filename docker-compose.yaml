@@ -11,8 +11,11 @@ services:
   mongodb:
     image: mongo
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=dockerAdminUser
-      - MONGO_INITDB_ROOT_PASSWORD=dockerAdminPass
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=root
+      - DB_NAME=textEdDb
+      - DB_USERNAME=dockerUser
+      - DB_PASSWORD=dockerPass
       # - MONGO_DATA_DIR=/data/db
     ports:
       - "27017:27017"

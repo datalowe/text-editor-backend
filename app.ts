@@ -6,7 +6,6 @@
 import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
-import fs from 'fs';
 import { Server } from 'socket.io';
 import { createServer } from 'http';
 
@@ -26,25 +25,14 @@ if (process.env.NODE_ENV === 'test') {
 } else if (process.env.PORT) {
     port = process.env.PORT;
     clientUrls = process.env.CLIENT_URLS.split(' ');
-} else {
-    const envConfig = JSON.parse(
-        fs.readFileSync(
-            './env_config.json',
-            {
-                encoding: 'utf8'
-            }
-        )
-    );
-
-    port = envConfig.expressPort;
-    clientUrls = envConfig.clientUrls.length;
 }
+
 clientUrls = clientUrls.length === 1 ? clientUrls[0] : clientUrls;
 
 // don't show the log when it is test
 if (process.env.NODE_ENV !== 'test') {
     // use morgan to log at command line
-    app.use(morgan('combined')); // 'combined' outputs the Apache style LOGs
+    app.use(morgan('combined')); // 'combined' outputs Apache style LOGs
 }
 
 // enable CORS, requests made from other domains

@@ -16,12 +16,13 @@ WORKDIR /backend/
 
 RUN npm install --save
 
-COPY env_config_local_docker.json /backend/env_config.json
+COPY .env.local.docker /backend/.env
 COPY app.ts /backend/
 COPY routes /backend/routes/
 COPY src /backend/src/
 COPY mongo-entrypoint /backend/mongo-entrypoint/
+COPY tsconfig.json /backend/tsconfig.json
 
 EXPOSE 1337
 
-CMD npm run production
+CMD export $(cat /backend/.env | xargs) && set +o allexport && npm run production

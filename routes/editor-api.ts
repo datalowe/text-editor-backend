@@ -1,39 +1,16 @@
 'use strict';
 import * as dbFuns from '../src/db-functions.js';
 import express from 'express';
-import fs from 'fs';
 
 const router = express.Router();
 
-let envConfig;
 let dsn;
-
-if (process.env.NODE_ENV === 'test') {
-    envConfig = {};
-} else if (process.env.DB_USERNAME) {
-    envConfig = {
-        dbUsername: process.env.DB_USERNAME,
-        dbPassword: process.env.DB_PASSWORD,
-        dbHost: process.env.DB_HOST,
-        dbName: process.env.DB_NAME,
-        dbUriPrefix: process.env.DB_URI_PREFIX
-    };
-} else {
-    envConfig = JSON.parse(
-        fs.readFileSync(
-            './env_config.json',
-            {
-                encoding: 'utf8'
-            }
-        )
-    );
-}
 
 if (process.env.NODE_ENV === 'test') {
     dsn = '';
 } else {
-    dsn = `${envConfig.dbUriPrefix}://${envConfig.dbUsername}:` +
-        `${envConfig.dbPassword}@${envConfig.dbHost}/${envConfig.dbName}` +
+    dsn = `${process.env.DB_URI_PREFIX}://${process.env.DB_USERNAME}:` +
+        `${process.env.DB_PASSWORD}@${process.env.DB_HOST}/${process.env.DB_NAME}` +
         '?retryWrites=true&w=majority';
 }
 
