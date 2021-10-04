@@ -96,9 +96,9 @@ describe('Editor API', () => {
             'title': 'Pocahontas',
             'body': 'Wind, leaves and water'
         }
-        const testIdObj = await sendDocToCollection('fauxDsn', 'editorDocs', testDoc);
+        const generatedId = await sendDocToCollection('fauxDsn', 'editorDocs', testDoc);
 
-        const res = await chai.request(server).get(`/editor-api/document/${testIdObj._id}`)
+        const res = await chai.request(server).get(`/editor-api/document/${generatedId}`)
         res.body.should.be.an('object');
         res.body.title.should.equal(testDoc.title);
         res.body.body.should.equal(testDoc.body);
@@ -128,12 +128,12 @@ describe('Editor API', () => {
             'title': 'Pocahontas',
             'body': 'Wind, leaves and water'
         }
-        const testIdObj = await sendDocToCollection('fauxDsn', 'editorDocs', testDoc);
+        const generatedId = await sendDocToCollection('fauxDsn', 'editorDocs', testDoc);
 
         testDoc.title = 'newtitle';
         testDoc.body = 'newbody';
         const res = await chai.request(server)
-          .put(`/editor-api/document/${testIdObj._id}`)
+          .put(`/editor-api/document/${generatedId}`)
           .type('application/json')
           .send(testDoc);
         res.body.should.be.an('object');

@@ -1,6 +1,8 @@
 'use strict';
+import mongodb from 'mongodb';
 import * as dbFuns from '../src/db-functions.js';
 import express from 'express';
+import { TextDocument } from '../src/interfaces/TextDocument.js';
 
 const router = express.Router();
 
@@ -16,8 +18,11 @@ if (process.env.NODE_ENV === 'test') {
 
 const colName = 'editorDocs';
 
-router.get('/document', async function(req, res) {
-    const searchResult = await dbFuns.getAllDocsInCollection(dsn, colName);
+router.get('/document', async function(
+    req: express.Request,
+    res: express.Response
+) {
+    const searchResult: mongodb.Document[] = await dbFuns.getAllDocsInCollection(dsn, colName);
 
     res.json(searchResult);
 });
@@ -36,7 +41,10 @@ router.get('/document/:id', async function(req, res) {
     res.json({ error: 'invalid_id' });
 });
 
-router.put('/document/:id', async function(req, res) {
+router.put('/document/:id', async function(
+    req: express.Request,
+    res: express.Response
+) {
     if (!('title' in req.body)) {
         res.json({ error: 'missing_title' });
         return;
@@ -45,12 +53,12 @@ router.put('/document/:id', async function(req, res) {
         res.json({ error: 'missing_body' });
         return;
     }
-    const updatedDoc = {
+    const updatedDoc: TextDocument = {
         _id: req.params.id,
         title: req.body.title,
         body: req.body.body
     };
-    const sendResult = await dbFuns.updateSingleDocInCollection(
+    const sendResult: mongodb.Document = await dbFuns.updateSingleDocInCollection(
         dsn,
         colName,
         updatedDoc
@@ -78,17 +86,13 @@ router.post('/document', async function(req, res) {
     };
     const sendResult = await dbFuns.sendDocToCollection(dsn, colName, newDoc);
 
-    if ('_id' in sendResult) {
-        const returnDoc = {
-            _id: sendResult._id,
-            title: req.body.title,
-            body: req.body.body
-        };
+    const returnDoc = {
+        _id: sendResult,
+        title: req.body.title,
+        body: req.body.body
+    };
 
-        res.json(returnDoc);
-    } else {
-        res.json(sendResult);
-    }
+    res.json(returnDoc);
 });
 
 export const editorRouter = router;
