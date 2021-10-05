@@ -70,6 +70,47 @@ async function getAllDocsInCollection(
 }
 
 /**
+  * Retrieve documents in collection which have the passed username as
+  * owner or in array of editors.
+  *
+  * @async
+  *
+  * @param {string} dsn        DSN for connecting to database.
+  * @param {string} colName    Name of collection.
+  * @param {string} username   Name of user.
+  *
+  * @throws Error when database operation fails.
+  *
+  * @return {Promise<mongodb.Document[]>} Array of documents in collection.
+  */
+async function getRelatedDocsInCollection(
+    dsn: string,
+    colName: string,
+    username: string
+): Promise<mongodb.Document[]> {
+    if (process.env.NODE_ENV === 'test') {
+        dsn = process.env.MONGO_URI;
+    }
+    const client: mongodb.MongoClient = await mongodb.MongoClient.connect(dsn);
+    const db: mongodb.Db = client.db();
+    const col: mongodb.Collection = db.collection(colName);
+    const res: mongodb.Document[] = await col.find({
+        $or: [
+            {
+                owner: username
+            },
+            {
+                editors: { $in: [username] }
+            }
+        ]
+    }).toArray();
+
+    await client.close();
+
+    return res;
+}
+
+/**
   * Retrieve single document in collection.
   *
   * @async
@@ -249,6 +290,7 @@ export {
     checkUserCredentials,
     createUser,
     getAllDocsInCollection,
+    getRelatedDocsInCollection,
     getSingleDocInCollection,
     listUsernames,
     sendDocToCollection,

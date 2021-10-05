@@ -6,6 +6,8 @@ import { TextDocument } from '../src/interfaces/TextDocument.js';
 import { isNoIdDocument, NoIdDocument } from '../src/interfaces/NoIdDocument.js';
 import { dsn } from '../app.js';
 import jwt from 'jsonwebtoken';
+import * as docRel from '../src/auth_util/doc-relationships.js';
+import { mongoDocToTextDoc } from '../src/util/util.js';
 
 const router: express.Router = express.Router();
 const colName: string = 'editorDocs';
@@ -17,13 +19,7 @@ router.all('*', function(
     res: express.Response,
     next: any
 ) {
-    let token: string;
-
-    if (typeof req.headers['x-access-token'] === 'string') {
-        token = req.headers['x-access-token'];
-    } else {
-        token = req.headers['x-access-token'][0];
-    }
+    const token = docRel.extractToken(req);
 
     jwt.verify(token, process.env.JWT_SECRET, function(err, decoded) {
         if (err) {
@@ -38,7 +34,13 @@ router.get('/document', async function(
     req: express.Request,
     res: express.Response
 ) {
-    const searchResult: mongodb.Document[] = await dbFuns.getAllDocsInCollection(dsn, colName);
+    const username: string = docRel.extractUsername(req);
+
+    const searchResult: mongodb.Document[] = await dbFuns.getRelatedDocsInCollection(
+        dsn,
+        colName,
+        username
+    );
 
     res.json(searchResult);
 });
@@ -48,6 +50,7 @@ router.get('/document/:id', async function(
     res: express.Response
 ) {
     if ((typeof req.params.id === 'string') && (req.params.id.length === 24)) {
+        const username = docRel.extractUsername(req);
         const searchResult: mongodb.Document | null = await dbFuns.getSingleDocInCollection(
             dsn,
             colName,
@@ -58,6 +61,14 @@ router.get('/document/:id', async function(
             res.json({ error: 'matching_document_not_found' });
             return;
         }
+
+        const textDoc: TextDocument = mongoDocToTextDoc(searchResult);
+
+        if (!docRel.hasDocumentAccess(username, textDoc, false)) {
+            res.json({ error: 'user_does_not_have_access_to_document' });
+            return;
+        }
+
         res.json(searchResult);
     }
     res.json({ error: 'invalid_id' });
@@ -71,6 +82,7 @@ router.put('/document/:id', async function(
         res.json({ error: 'invalid_data' });
         return;
     }
+
     const updatedDoc: TextDocument = {
         _id: req.params.id,
         title: req.body.title,

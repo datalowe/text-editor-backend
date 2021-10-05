@@ -8,8 +8,11 @@ import jwt from 'jsonwebtoken';
 import { server } from '../dist/app.js';
 import { sendDocToCollection, createUser } from '../dist/src/db-functions.js';
 
+const genericUserName = 'genericUser';
+const genericUserName2 = 'genericUser2';
+
 const genericUserToken = jwt.sign(
-  { username: 'genericUser' },
+  { username: genericUserName },
   process.env.JWT_SECRET,
   { expiresIn: '1h' }
 );
@@ -65,8 +68,8 @@ describe('Editor API', () => {
           const testDoc = {
             'title': 'Pocahontas',
             'body': 'Wind, leaves and water',
-            'owner': 'user1',
-            'editors': ['user1', 'user2']
+            'owner': genericUserName,
+            'editors': [genericUserName, genericUserName2]
           }
 
           chai.request(server)
@@ -108,8 +111,8 @@ describe('Editor API', () => {
         const testDoc = {
           'title': 'Pocahontas',
           'body': 'Wind, leaves and water',
-          'owner': 'user1',
-          'editors': ['user1', 'user2']
+          'owner': genericUserName2,
+          'editors': [genericUserName, genericUserName2]
         }
         const generatedId = await sendDocToCollection('fauxDsn', 'editorDocs', testDoc);
 
@@ -145,8 +148,8 @@ describe('Editor API', () => {
         const testDoc = {
           'title': 'Pocahontas',
           'body': 'Wind, leaves and water',
-          'owner': 'user1',
-          'editors': ['user1', 'user2']
+          'owner': genericUserName,
+          'editors': [genericUserName, genericUserName2]
         }
         const generatedId = await sendDocToCollection('fauxDsn', 'editorDocs', testDoc);
 
