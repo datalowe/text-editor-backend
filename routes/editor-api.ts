@@ -3,10 +3,11 @@ import mongodb from 'mongodb';
 import * as dbFuns from '../src/db-functions.js';
 import express from 'express';
 import { TextDocument } from '../src/interfaces/TextDocument.js';
+import { isNoIdDocument, NoIdDocument } from '../src/interfaces/NoIdDocument.js';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
-let dsn;
+let dsn: string;
 
 if (process.env.NODE_ENV === 'test') {
     dsn = '';
@@ -16,7 +17,7 @@ if (process.env.NODE_ENV === 'test') {
         '?retryWrites=true&w=majority';
 }
 
-const colName = 'editorDocs';
+const colName: string = 'editorDocs';
 
 router.get('/document', async function(
     req: express.Request,
@@ -27,16 +28,22 @@ router.get('/document', async function(
     res.json(searchResult);
 });
 
-router.get('/document/:id', async function(req, res) {
+router.get('/document/:id', async function(
+    req: express.Request,
+    res: express.Response
+) {
     if ((typeof req.params.id === 'string') && (req.params.id.length === 24)) {
-        const searchResult = await dbFuns.getSingleDocInCollection(dsn, colName, req.params.id);
+        const searchResult: mongodb.Document | null = await dbFuns.getSingleDocInCollection(
+            dsn,
+            colName,
+            req.params.id
+        );
 
         if (searchResult == null) {
             res.json({ error: 'matching_document_not_found' });
             return;
         }
         res.json(searchResult);
-        return;
     }
     res.json({ error: 'invalid_id' });
 });
@@ -45,12 +52,8 @@ router.put('/document/:id', async function(
     req: express.Request,
     res: express.Response
 ) {
-    if (!('title' in req.body)) {
-        res.json({ error: 'missing_title' });
-        return;
-    }
-    if (!('body' in req.body)) {
-        res.json({ error: 'missing_body' });
+    if (!isNoIdDocument(req.body)) {
+        res.json({ error: 'invalid_data' });
         return;
     }
     const updatedDoc: TextDocument = {
@@ -71,20 +74,19 @@ router.put('/document/:id', async function(
     }
 });
 
-router.post('/document', async function(req, res) {
-    if (!('title' in req.body)) {
-        res.json({ error: 'missing_title' });
+router.post('/document', async function(
+    req: express.Request,
+    res: express.Response
+) {
+    if (!isNoIdDocument(req.body)) {
+        res.json({ error: 'invalid_data' });
         return;
     }
-    if (!('body' in req.body)) {
-        res.json({ error: 'missing_body' });
-        return;
-    }
-    const newDoc = {
+    const newDoc: NoIdDocument = {
         title: req.body.title,
         body: req.body.body
     };
-    const sendResult = await dbFuns.sendDocToCollection(dsn, colName, newDoc);
+    const sendResult: string = await dbFuns.sendDocToCollection(dsn, colName, newDoc);
 
     const returnDoc = {
         _id: sendResult,

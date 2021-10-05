@@ -1,21 +1,18 @@
 'use strict';
-// explicitly importing and using body-parser
-// is deprecated:
-// https://stackoverflow.com/questions/66525078/bodyparser-is-deprecated
 // 3rd party dependencies
 import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
-import { Server } from 'socket.io';
-import { createServer } from 'http';
+import * as socketio from 'socket.io';
+import http from 'http';
 
 // local imports
 import { editorRouter } from './routes/editor-api.js';
 
-const app = express();
+const app: express.Express = express();
 
-let port;
-let clientUrls;
+let port: number;
+let clientUrls: Array<string> | string;
 
 if (process.env.NODE_ENV === 'test') {
     port = 6666;
@@ -23,7 +20,7 @@ if (process.env.NODE_ENV === 'test') {
         'http://localhost:4200'
     ];
 } else if (process.env.PORT) {
-    port = process.env.PORT;
+    port = Number.parseInt(process.env.PORT);
     clientUrls = process.env.CLIENT_URLS.split(' ');
 }
 
@@ -69,9 +66,9 @@ app.use((err, req, res, next) => {
     });
 });
 
-const httpServer = createServer(app);
+const httpServer: http.Server = http.createServer(app);
 
-const io = new Server(httpServer, {
+const io: socketio.Server = new socketio.Server(httpServer, {
     cors: {
         origin: clientUrls,
         methods: ['GET', 'POST']
@@ -94,8 +91,7 @@ io.sockets.on('connection', function(socket) {
     });
 });
 
-// Start up server
-export const server = httpServer.listen(
+export const server: http.Server = httpServer.listen(
     port,
     () => console.log(`Text editor backend listening on port ${port}.`)
 );

@@ -3,8 +3,6 @@ import mongodb from 'mongodb';
 import { NoIdDocument } from './interfaces/NoIdDocument';
 import { TextDocument } from './interfaces/TextDocument';
 
-const ObjectId = mongodb.ObjectId;
-
 /**
   * Send a document to a collection.
   *
@@ -90,7 +88,9 @@ async function getSingleDocInCollection(
     const client: mongodb.MongoClient = await mongodb.MongoClient.connect(dsn);
     const db: mongodb.Db = client.db();
     const col: mongodb.Collection = db.collection(colName);
-    const res: mongodb.Document = await col.findOne({ _id: new ObjectId(id) });
+    const res: mongodb.Document = await col.findOne({
+        _id: new mongodb.ObjectId(id)
+    });
 
     await client.close();
 
@@ -124,7 +124,7 @@ async function updateSingleDocInCollection(
     const col: mongodb.Collection = db.collection(colName);
     const res: mongodb.Document = await col.updateOne(
         {
-            _id: new ObjectId(updatedDoc._id)
+            _id: new mongodb.ObjectId(updatedDoc._id)
         },
         {
             $set: {
