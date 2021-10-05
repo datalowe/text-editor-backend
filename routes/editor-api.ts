@@ -4,19 +4,9 @@ import * as dbFuns from '../src/db-functions.js';
 import express from 'express';
 import { TextDocument } from '../src/interfaces/TextDocument.js';
 import { isNoIdDocument, NoIdDocument } from '../src/interfaces/NoIdDocument.js';
+import { dsn } from '../app.js';
 
 const router: express.Router = express.Router();
-
-let dsn: string;
-
-if (process.env.NODE_ENV === 'test') {
-    dsn = '';
-} else {
-    dsn = `${process.env.DB_URI_PREFIX}://${process.env.DB_USERNAME}:` +
-        `${process.env.DB_PASSWORD}@${process.env.DB_HOST}/${process.env.DB_NAME}` +
-        '?retryWrites=true&w=majority';
-}
-
 const colName: string = 'editorDocs';
 
 router.get('/document', async function(

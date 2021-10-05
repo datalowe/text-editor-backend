@@ -1,7 +1,12 @@
 'use strict';
+import bcrypt from 'bcryptjs';
 import mongodb from 'mongodb';
 import { NoIdDocument } from './interfaces/NoIdDocument';
 import { TextDocument } from './interfaces/TextDocument';
+import { LoginCredentials } from './interfaces/LoginCredentials';
+
+const numSaltRounds = 10;
+const userColName: string = 'editorUsers';
 
 /**
   * Send a document to a collection.
@@ -25,10 +30,10 @@ async function sendDocToCollection(
         dsn = process.env.MONGO_URI;
     }
 
-    const client = await mongodb.MongoClient.connect(dsn);
-    const db = client.db();
-    const col = db.collection(colName);
-    const res = await col.insertOne(newDoc);
+    const client: mongodb.MongoClient = await mongodb.MongoClient.connect(dsn);
+    const db: mongodb.Db = client.db();
+    const col: mongodb.Collection = db.collection(colName);
+    const res: mongodb.Document = await col.insertOne(newDoc);
 
     await client.close();
 
@@ -139,7 +144,79 @@ async function updateSingleDocInCollection(
     return res;
 }
 
+/**
+  * Create a new editor user.
+  *
+  * @async
+  *
+  * @param {string} dsn                 DSN for connecting to database.
+  * @param {LoginCredentials} userInfo  User credentials.
+  *
+  * @throws Error when database operation fails.
+  *
+  * @return {Promise<boolean>} Always true.
+  */
+async function createUser(
+    dsn: string,
+    userInfo: LoginCredentials
+): Promise<boolean> {
+    if (process.env.NODE_ENV === 'test') {
+        dsn = process.env.MONGO_URI;
+    }
+
+    const hashedPassword = await bcrypt.hash(userInfo.password, numSaltRounds);
+    const client: mongodb.MongoClient = await mongodb.MongoClient.connect(dsn);
+    const db: mongodb.Db = client.db();
+    const col: mongodb.Collection = db.collection(userColName);
+
+    await col.insertOne({
+        username: userInfo.username,
+        password: hashedPassword
+    });
+
+    await client.close();
+
+    return true;
+}
+
+/**
+  * Create a new editor user.
+  *
+  * @async
+  *
+  * @param {string} dsn                     DSN for connecting to database.
+  * @param {LoginCredentials} checkCreds    User credentials to validate.
+  *
+  * @throws Error when database operation fails.
+  *
+  * @return {Promise<boolean>} True if credentials are valid, otherwise false.
+  */
+async function checkUserCredentials(
+    dsn: string,
+    userInfo: LoginCredentials
+): Promise<boolean> {
+    if (process.env.NODE_ENV === 'test') {
+        dsn = process.env.MONGO_URI;
+    }
+
+    const client: mongodb.MongoClient = await mongodb.MongoClient.connect(dsn);
+    const db: mongodb.Db = client.db();
+    const col: mongodb.Collection = db.collection(userColName);
+
+    const dbRes: mongodb.Document = await col.findOne({
+        username: userInfo.username
+    });
+
+    await client.close();
+
+    const isValid: boolean = await bcrypt.compare(userInfo.password, dbRes.password);
+
+    return isValid;
+}
+
 export {
+    checkUserCredentials,
+    createUser,
     getAllDocsInCollection,
     getSingleDocInCollection,
     sendDocToCollection,

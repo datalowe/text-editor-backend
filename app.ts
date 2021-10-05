@@ -8,20 +8,21 @@ import http from 'http';
 
 // local imports
 import { editorRouter } from './routes/editor-api.js';
+import { userRouter } from './routes/user.js';
 
 const app: express.Express = express();
 
-let port: number;
-let clientUrls: Array<string> | string;
+const port: number = Number.parseInt(process.env.PORT);
+let clientUrls: Array<string> | string = process.env.CLIENT_URLS.split(' ');
+
+export let dsn: string;
 
 if (process.env.NODE_ENV === 'test') {
-    port = 6666;
-    clientUrls = [
-        'http://localhost:4200'
-    ];
-} else if (process.env.PORT) {
-    port = Number.parseInt(process.env.PORT);
-    clientUrls = process.env.CLIENT_URLS.split(' ');
+    dsn = process.env.MONGO_URI;
+} else {
+    dsn = `${process.env.DB_URI_PREFIX}://${process.env.DB_USERNAME}:` +
+        `${process.env.DB_PASSWORD}@${process.env.DB_HOST}/${process.env.DB_NAME}` +
+        '?retryWrites=true&w=majority';
 }
 
 clientUrls = clientUrls.length === 1 ? clientUrls[0] : clientUrls;
@@ -39,13 +40,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.use('/editor-api', editorRouter);
+app.use('/user', userRouter);
 
 // Add routes for 404 and error handling
 // Catch 404 and forward to error handler
 app.use((req, res, next) => {
     const err = new Error('Not Found');
 
-    console.log(res.statusCode);
     res.statusCode = 404;
     next(err);
 });

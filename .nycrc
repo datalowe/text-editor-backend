@@ -7,13 +7,9 @@
     ],
     "include": [
       "test/*.js",
-      "test/*.mjs",
-      "app.js",
-      "app.mjs",
-      "routes/*.mjs",
-      "routes/*.js",
-      "src/*.mjs",
-      "src/*.js"
+      "dist/app.js",
+      "dist/routes/*.js",
+      "dist/src/*.js"
     ],
     "exclude": [
       "coverage/",

@@ -5,13 +5,13 @@ import chai from 'chai';
 import chaiHttp from 'chai-http';
 
 import { server } from '../dist/app.js';
-import { sendDocToCollection } from '../dist/src/db-functions.js';
+import { sendDocToCollection, createUser } from '../dist/src/db-functions.js';
 
 let mongoServer;
 
 before(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    process.env.MONGO_URI = mongoServer.getUri();
+  mongoServer = await MongoMemoryServer.create();
+  process.env.MONGO_URI = mongoServer.getUri();
 });
 
 after(async () => {
@@ -141,5 +141,4 @@ describe('Editor API', () => {
         res.body.body.should.equal(testDoc.body);
     });
   });
-
 });
