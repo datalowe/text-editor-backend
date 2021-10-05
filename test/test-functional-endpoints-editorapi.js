@@ -3,9 +3,16 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import chai from 'chai';
 import chaiHttp from 'chai-http';
+import jwt from 'jsonwebtoken';
 
 import { server } from '../dist/app.js';
 import { sendDocToCollection, createUser } from '../dist/src/db-functions.js';
+
+const genericUserToken = jwt.sign(
+  { username: 'genericUser' },
+  process.env.JWT_SECRET,
+  { expiresIn: '1h' }
+);
 
 let mongoServer;
 
@@ -41,6 +48,7 @@ describe('Editor API', () => {
         (done) => {
           chai.request(server)
               .get("/editor-api/document")
+              .set('x-access-token', genericUserToken)
               .end((err, res) => {
                   res.should.have.status(200);
                   res.body.should.be.an("array");
@@ -56,11 +64,15 @@ describe('Editor API', () => {
         (done) => {
           const testDoc = {
             'title': 'Pocahontas',
-            'body': 'Wind, leaves and water'
+            'body': 'Wind, leaves and water',
+            'owner': 'user1',
+            'editors': ['user1', 'user2']
           }
+
           chai.request(server)
               .post("/editor-api/document")
               .type('application/json')
+              .set('x-access-token', genericUserToken)
               .send(testDoc)
               .end((err, res) => {
                   res.should.have.status(200);
@@ -80,6 +92,7 @@ describe('Editor API', () => {
       (done) => {
         chai.request(server)
             .get(`/editor-api/document/4300`)
+            .set('x-access-token', genericUserToken)
             .end((err, res) => {
                 res.body.should.be.an('object');
                 res.body.error.should.be.an('string');
@@ -93,12 +106,16 @@ describe('Editor API', () => {
       'should return object with corresponding _id since passed id is valid', 
       async () => {
         const testDoc = {
-            'title': 'Pocahontas',
-            'body': 'Wind, leaves and water'
+          'title': 'Pocahontas',
+          'body': 'Wind, leaves and water',
+          'owner': 'user1',
+          'editors': ['user1', 'user2']
         }
         const generatedId = await sendDocToCollection('fauxDsn', 'editorDocs', testDoc);
 
-        const res = await chai.request(server).get(`/editor-api/document/${generatedId}`)
+        const res = await chai.request(server)
+          .get(`/editor-api/document/${generatedId}`)
+          .set('x-access-token', genericUserToken);
         res.body.should.be.an('object');
         res.body.title.should.equal(testDoc.title);
         res.body.body.should.equal(testDoc.body);
@@ -111,6 +128,7 @@ describe('Editor API', () => {
       (done) => {
         chai.request(server)
             .get(`/editor-api/document/012345678901234567890123`)
+            .set('x-access-token', genericUserToken)
             .end((err, res) => {
                 res.body.should.be.an('object');
                 res.body.error.should.be.an('string');
@@ -125,8 +143,10 @@ describe('Editor API', () => {
       'and correct new title/body are included', 
       async () => {
         const testDoc = {
-            'title': 'Pocahontas',
-            'body': 'Wind, leaves and water'
+          'title': 'Pocahontas',
+          'body': 'Wind, leaves and water',
+          'owner': 'user1',
+          'editors': ['user1', 'user2']
         }
         const generatedId = await sendDocToCollection('fauxDsn', 'editorDocs', testDoc);
 
@@ -134,6 +154,7 @@ describe('Editor API', () => {
         testDoc.body = 'newbody';
         const res = await chai.request(server)
           .put(`/editor-api/document/${generatedId}`)
+          .set('x-access-token', genericUserToken)
           .type('application/json')
           .send(testDoc);
         res.body.should.be.an('object');

@@ -214,11 +214,43 @@ async function checkUserCredentials(
     return isValid;
 }
 
+/**
+  * Get an array of all usernames.
+  *
+  * @async
+  *
+  * @param {string} dsn                     DSN for connecting to database.
+  *
+  * @throws Error when database operation fails.
+  *
+  * @return {Promise<string[]>} True if credentials are valid, otherwise false.
+  */
+async function listUsernames(
+    dsn: string
+): Promise<string[]> {
+    if (process.env.NODE_ENV === 'test') {
+        dsn = process.env.MONGO_URI;
+    }
+
+    const client: mongodb.MongoClient = await mongodb.MongoClient.connect(dsn);
+    const db: mongodb.Db = client.db();
+    const col: mongodb.Collection = db.collection(userColName);
+
+    const userDocs: mongodb.Document[] = await col.find().toArray();
+
+    await client.close();
+
+    const userNames: string[] = userDocs.map(uDoc => uDoc.username);
+
+    return userNames;
+}
+
 export {
     checkUserCredentials,
     createUser,
     getAllDocsInCollection,
     getSingleDocInCollection,
+    listUsernames,
     sendDocToCollection,
     updateSingleDocInCollection
 };

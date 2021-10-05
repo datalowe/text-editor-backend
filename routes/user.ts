@@ -44,4 +44,38 @@ router.post('/login', async function(
     res.json({ error: 'invalid_credentials' });
 });
 
+// only allow users with a valid access token to access list of
+// all users
+router.get('/list', function(
+    req: express.Request,
+    res: express.Response,
+    next: any
+) {
+    let token: string;
+
+    if (typeof req.headers['x-access-token'] === 'string') {
+        token = req.headers['x-access-token'];
+    } else {
+        token = req.headers['x-access-token'][0];
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, function(err, decoded) {
+        if (err) {
+            res.json({ authentication_error: err });
+            return;
+        }
+        next();
+    });
+});
+
+// get a list of all usernames
+router.get('/list', async function(
+    req: express.Request,
+    res: express.Response
+) {
+    const userList: string[] = await dbFuns.listUsernames(dsn);
+
+    res.json({ usernames: userList });
+});
+
 export const userRouter = router;

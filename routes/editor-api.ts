@@ -5,9 +5,34 @@ import express from 'express';
 import { TextDocument } from '../src/interfaces/TextDocument.js';
 import { isNoIdDocument, NoIdDocument } from '../src/interfaces/NoIdDocument.js';
 import { dsn } from '../app.js';
+import jwt from 'jsonwebtoken';
 
 const router: express.Router = express.Router();
 const colName: string = 'editorDocs';
+
+// only allow users with a valid access token to access any of the
+// editor endpoints
+router.all('*', function(
+    req: express.Request,
+    res: express.Response,
+    next: any
+) {
+    let token: string;
+
+    if (typeof req.headers['x-access-token'] === 'string') {
+        token = req.headers['x-access-token'];
+    } else {
+        token = req.headers['x-access-token'][0];
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, function(err, decoded) {
+        if (err) {
+            res.json({ authentication_error: err });
+            return;
+        }
+        next();
+    });
+});
 
 router.get('/document', async function(
     req: express.Request,
@@ -49,7 +74,9 @@ router.put('/document/:id', async function(
     const updatedDoc: TextDocument = {
         _id: req.params.id,
         title: req.body.title,
-        body: req.body.body
+        body: req.body.body,
+        owner: req.body.owner,
+        editors: req.body.editors
     };
     const sendResult: mongodb.Document = await dbFuns.updateSingleDocInCollection(
         dsn,
@@ -74,7 +101,9 @@ router.post('/document', async function(
     }
     const newDoc: NoIdDocument = {
         title: req.body.title,
-        body: req.body.body
+        body: req.body.body,
+        owner: req.body.owner,
+        editors: req.body.editors
     };
     const sendResult: string = await dbFuns.sendDocToCollection(dsn, colName, newDoc);
 
