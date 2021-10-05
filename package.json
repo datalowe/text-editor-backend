@@ -6,7 +6,8 @@
   "scripts": {
     "start": "NODE_OPTIONS='--no-warnings --loader ts-node/esm' ts-node -r dotenv/config app.ts",
     "mon": "NODE_OPTIONS='--no-warnings --loader ts-node/esm' nodemon --watch './**/*.ts' --exec 'ts-node' -r dotenv/config app.ts",
-    "production": "tsc && NODE_ENV='production' node dist/app.js",
+    "build": "tsc",
+    "production": "NODE_ENV='production' node dist/app.js",
     "test": "tsc && NODE_ENV='test' DOTENV_CONFIG_PATH='.env.test' c8 mocha -r ts-node/register --timeout 1000 -r dotenv/config 'test/*.js'",
     "eslint": "eslint ."
   },

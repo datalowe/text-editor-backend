@@ -25,4 +25,4 @@ COPY tsconfig.json /backend/tsconfig.json
 
 EXPOSE 1337
 
-CMD export $(cat /backend/.env | xargs) && set +o allexport && npm run production
+CMD export $(cat /backend/.env | xargs) && set +o allexport && npm run build && npm run production
