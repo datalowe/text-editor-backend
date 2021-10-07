@@ -37,6 +37,13 @@ If you want to run the app as a Docker container, but don't want the database to
 4. Run `docker compose up`.
 
 ## API routes
+### Authentication-related endpoints
+* `example.com:port/user/login`: POST. Requires request to include a JSON-formatted body which has keys 'username' and 'password'. Returns a JSON-formatted body with a single object with key 'token' which has a generated JWT which is valid for 1h.
+* `example.com:port/user/register`: POST. Requires request to include a JSON-formatted body which has keys 'username' and 'password'. Creates user in backend service.
+* `example.com:port/user/list`: GET. Requires request to include an 'x-access-token' header with a valid user JWT. Returns a JSON-formatted body with an array holding all registered users' usernames.
+
+### Document-related endpoints
+All these endpoints require that the user is already authenticated, ie an 'x-access-token' header is included in the request and holds a valid JWT.
 * `example.com:port/editor-api/document`: GET. Returns a JSON-formatted body with an array holding all text documents in the database, including '_id', 'title' and 'body' fields for each one.
 * `example.com:port/editor-api/document/<document_id>`: GET. Returns a JSON-formatted body with a single object representing a matching text document in the database, including '_id', 'title' and 'body' fields.
 * `example.com:port/editor-api/document`: POST. Requires request to include a JSON-formatted body which has keys 'title' and 'body'. Returns a JSON-formatted body with a single object representing the created text document in the database, including '_id', 'title' and 'body' fields.
