@@ -175,7 +175,9 @@ async function updateSingleDocInCollection(
         {
             $set: {
                 title: updatedDoc.title,
-                body: updatedDoc.body
+                body: updatedDoc.body,
+                owner: updatedDoc.owner,
+                editors: updatedDoc.editors
             }
         }
     );
@@ -247,6 +249,10 @@ async function checkUserCredentials(
     const dbRes: mongodb.Document = await col.findOne({
         username: userInfo.username
     });
+
+    if (!dbRes) {
+        return false;
+    }
 
     await client.close();
 

@@ -19,6 +19,10 @@ router.all('*', function(
     res: express.Response,
     next: any
 ) {
+    if (!req.headers['x-access-token']) {
+        res.json({ authentication_error: 'x-access-token header missing' });
+        return;
+    }
     const token = docRel.extractToken(req);
 
     jwt.verify(token, process.env.JWT_SECRET, function(err, decoded) {
@@ -80,6 +84,7 @@ router.put('/document/:id', async function(
 ) {
     if (!isNoIdDocument(req.body)) {
         res.json({ error: 'invalid_data' });
+        res.statusCode = 400;
         return;
     }
 
@@ -109,6 +114,7 @@ router.post('/document', async function(
 ) {
     if (!isNoIdDocument(req.body)) {
         res.json({ error: 'invalid_data' });
+        res.statusCode = 400;
         return;
     }
     const newDoc: NoIdDocument = {
