@@ -20,7 +20,7 @@ export async function isDocumentOwner(
         const dbDoc: mongodb.Document = await getSingleDocInCollection(
             dsn,
             docColName,
-            doc._id,
+            doc.id,
             userId
         );
 
@@ -45,7 +45,7 @@ export async function isDocumentEditor(
         const dbDoc: mongodb.Document = await getSingleDocInCollection(
             dsn,
             docColName,
-            doc._id,
+            doc.id,
             userId
         );
 

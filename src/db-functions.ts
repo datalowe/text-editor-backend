@@ -9,7 +9,8 @@ import { UserNotFoundException } from './exceptions/UserNotFoundException.js';
 import { DatabaseException } from './exceptions/DatabaseException.js';
 import { IncorrectPasswordException } from './exceptions/IncorrectPasswordException.js';
 import { DocumentNotFoundException } from './exceptions/DocumentNotFoundException.js';
-import { mongoDocToTextDoc } from './util/util.js';
+import { mongoDocToEditor, mongoDocToTextDoc } from './util/util.js';
+import { Editor } from './interfaces/Editor';
 
 const numSaltRounds = 10;
 const userColName: string = 'editorUsers';
@@ -25,7 +26,7 @@ const userColName: string = 'editorUsers';
   *
   * @throws Error when database operation fails.
   *
-  * @return {Promise<string>} String holding generated document _id.
+  * @return {Promise<string>} String holding generated document id.
   */
 async function sendDocToCollection(
     dsn: string,
@@ -47,35 +48,6 @@ async function sendDocToCollection(
 }
 
 /**
-  * Retrieve all documents in collection.
-  *
-  * @async
-  *
-  * @param {string} dsn        DSN for connecting to database.
-  * @param {string} colName    Name of collection.
-  *
-  * @throws Error when database operation fails.
-  *
-  * @return {Promise<mongodb.Document[]>} Array of documents in collection.
-  */
-async function getAllDocsInCollection(
-    dsn: string,
-    colName: string
-): Promise<mongodb.Document[]> {
-    if (process.env.NODE_ENV === 'test') {
-        dsn = process.env.MONGO_URI;
-    }
-    const client: mongodb.MongoClient = await mongodb.MongoClient.connect(dsn);
-    const db: mongodb.Db = client.db();
-    const col: mongodb.Collection = db.collection(colName);
-    const res: mongodb.Document[] = await col.find().toArray();
-
-    await client.close();
-
-    return res;
-}
-
-/**
   * Retrieve documents in collection which have the passed username as
   * owner or in array of editors.
   *
@@ -83,7 +55,7 @@ async function getAllDocsInCollection(
   *
   * @param {string} dsn        DSN for connecting to database.
   * @param {string} colName    Name of collection.
-  * @param {string} userId     Unique id (_id) of request user.
+  * @param {string} userId     Unique id of request user.
   *
   * @throws Error when database operation fails.
   *
@@ -124,8 +96,8 @@ async function getRelatedDocsInCollection(
   *
   * @param {string} dsn        DSN for connecting to database.
   * @param {string} colName    Name of collection.
-  * @param {string} id         Unique id (_id) of document in collection.
-  * @param {string} userId     Unique id (_id) of request user.
+  * @param {string} id         Unique id of document in collection.
+  * @param {string} userId     Unique id of request user.
   *
   * @throws Error when database operation fails.
   *
@@ -171,8 +143,8 @@ async function getSingleDocInCollection(
   *
   * @param {string} dsn        DSN for connecting to database.
   * @param {string} colName    Name of collection.
-  * @param {object} updatedDoc key-value object, including '_id', 'title' and 'body'
-  * with _id of document to update and new title/body values.
+  * @param {object} updatedDoc key-value object, including 'id', 'title' and 'body'
+  * with id of document to update and new title/body values.
   *
   * @throws Error when database operation fails.
   *
@@ -191,7 +163,7 @@ async function updateSingleDocInCollection(
     const col: mongodb.Collection = db.collection(colName);
     const res: mongodb.Document = await col.updateOne(
         {
-            _id: new mongodb.ObjectId(updatedDoc._id)
+            _id: new mongodb.ObjectId(updatedDoc.id)
         },
         {
             $set: {
@@ -297,16 +269,16 @@ async function getUserId(
   * @async
   *
   * @param {string} dsn                     DSN for connecting to database.
-  * @param {string} userId                  User ID to look up user by.
+  * @param {string} userId                  User ID to look up editor by.
   *
   * @throws {UserNotFoundException} If user matching id is not found in database.
   *
-  * @return {Promise<string>} User's username.
+  * @return {Promise<Editor>} Editor corresponding to passed user ID.
   */
-async function getSingleUsername(
+async function getSingleEditor(
     dsn: string,
     userId: string
-): Promise<string> {
+): Promise<Editor> {
     if (process.env.NODE_ENV === 'test') {
         dsn = process.env.MONGO_URI;
     }
@@ -325,7 +297,7 @@ async function getSingleUsername(
 
     await client.close();
 
-    return dbRes.username;
+    return mongoDocToEditor(dbRes);
 }
 
 /**
@@ -334,16 +306,16 @@ async function getSingleUsername(
   * @async
   *
   * @param {string} dsn                     DSN for connecting to database.
-  * @param {string} userId                  User ID to look up user by.
+  * @param {string} userId                  User ID to look up editor by.
   *
   * @throws {UserNotFoundException} If user matching id is not found in database.
   *
-  * @return {Promise<string[]>} Array of matching users' usernames.
+  * @return {Promise<Editor>} Editor corresponding to passed user ID.
   */
-async function getMultipleUsernames(
+async function getMultipleEditors(
     dsn: string,
     userIds: string[]
-): Promise<string[]> {
+): Promise<Editor[]> {
     if (process.env.NODE_ENV === 'test') {
         dsn = process.env.MONGO_URI;
     }
@@ -352,7 +324,7 @@ async function getMultipleUsernames(
     const db: mongodb.Db = client.db();
     const col: mongodb.Collection = db.collection(userColName);
 
-    const dbRes: mongodb.Document = await col.find({
+    const editorDocs: mongodb.Document[] = await col.find({
         _id: {
             $in: userIds.map(id => new mongodb.ObjectId(id))
         }
@@ -360,7 +332,7 @@ async function getMultipleUsernames(
 
     await client.close();
 
-    return dbRes.map((doc: mongodb.Document) => doc.username);
+    return editorDocs.map((eDoc: mongodb.Document) => mongoDocToEditor(eDoc));
 }
 
 /**
@@ -389,19 +361,50 @@ async function listUsernames(
 
     await client.close();
 
-    const userNames: string[] = userDocs.map(uDoc => uDoc.username);
+    const usernames: string[] = userDocs.map(uDoc => uDoc.username);
 
-    return userNames;
+    return usernames;
+}
+
+/**
+  * Get an array of all editors.
+  *
+  * @async
+  *
+  * @param {string} dsn                     DSN for connecting to database.
+  *
+  * @throws Error when database operation fails.
+  *
+  * @return {Promise<Editor[]>} True if credentials are valid, otherwise false.
+  */
+async function listEditors(
+    dsn: string
+): Promise<Editor[]> {
+    if (process.env.NODE_ENV === 'test') {
+        dsn = process.env.MONGO_URI;
+    }
+
+    const client: mongodb.MongoClient = await mongodb.MongoClient.connect(dsn);
+    const db: mongodb.Db = client.db();
+    const col: mongodb.Collection = db.collection(userColName);
+
+    const editorDocs: mongodb.Document[] = await col.find().toArray();
+
+    await client.close();
+
+    const editors: Editor[] = editorDocs.map(eDoc => mongoDocToEditor(eDoc));
+
+    return editors;
 }
 
 export {
     createUser,
-    getAllDocsInCollection,
     getRelatedDocsInCollection,
-    getMultipleUsernames,
+    getMultipleEditors,
     getSingleDocInCollection,
-    getSingleUsername,
+    getSingleEditor,
     getUserId,
+    listEditors,
     listUsernames,
     sendDocToCollection,
     updateSingleDocInCollection

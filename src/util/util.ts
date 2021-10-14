@@ -1,4 +1,5 @@
 import mongodb from 'mongodb';
+import { Editor } from '../interfaces/Editor';
 import { TextDocument } from '../interfaces/TextDocument';
 
 export function mongoDocToTextDoc(
@@ -6,7 +7,7 @@ export function mongoDocToTextDoc(
 ): TextDocument {
     const textDoc: TextDocument = {
         ownerId: mongoDoc.ownerId,
-        _id: mongoDoc._id,
+        id: mongoDoc._id,
         editorIds: mongoDoc.editorIds,
         title: mongoDoc.title,
         body: mongoDoc.body
@@ -21,4 +22,15 @@ export function isValidId(
     id: any
 ): boolean {
     return typeof id === 'string' && id.length === 24;
+}
+
+export function mongoDocToEditor(
+    mongoDoc: mongodb.Document
+): Editor {
+    const editor: Editor = {
+        id: mongoDoc._id,
+        username: mongoDoc.username
+    };
+
+    return editor;
 }

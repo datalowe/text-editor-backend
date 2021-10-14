@@ -88,7 +88,7 @@ io.sockets.on('connection', function(socket) {
     socket.on('docBodyUpdate', function (data) {
         // note that this only broadcasts to all clients __except__
         // the event origin.
-        socket.to(data._id.toString()).emit('docBodyUpdate', data);
+        socket.to(data.id.toString()).emit('docBodyUpdate', data);
     });
 });
 

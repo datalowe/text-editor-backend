@@ -1,5 +1,5 @@
 export interface TextDocument {
-    _id: string,
+    id: string,
     title: string,
     body: string,
     ownerId: string,
@@ -10,7 +10,7 @@ export function isTextDocument(arg: any): arg is TextDocument {
     if (typeof arg !== 'object') {
         return false;
     }
-    (['_id', 'title', 'body', 'ownerId', 'editorIds']).forEach(propKey => {
+    (['id', 'title', 'body', 'ownerId', 'editorIds']).forEach(propKey => {
         if (!(propKey in arg)) {
             return false;
         }

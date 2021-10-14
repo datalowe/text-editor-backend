@@ -15,7 +15,7 @@ const TextDocumentType = new GraphQLObjectType({
     name: 'TextDocument',
     description: 'Represents a text document with an owner and possibly multiple other editors.',
     fields: () => ({
-        _id: { type: GraphQLNonNull(GraphQLString) },
+        id: { type: GraphQLNonNull(GraphQLString) },
         title: { type: GraphQLNonNull(GraphQLString) },
         body: { type: GraphQLNonNull(GraphQLString) },
         ownerId: { type: GraphQLNonNull(GraphQLString) },
@@ -23,17 +23,13 @@ const TextDocumentType = new GraphQLObjectType({
         owner: {
             type: EditorType,
             resolve: async (doc) => {
-                const username = await dbFuns.getSingleUsername(dsn, doc.ownerId);
-
-                return { username: username };
+                return await dbFuns.getSingleEditor(dsn, doc.ownerId);
             }
         },
         editors: {
             type: GraphQLList(EditorType),
             resolve: async (doc) => {
-                const usernames: string[] = await dbFuns.getMultipleUsernames(dsn, doc.editorIds);
-
-                return usernames.map(u => { return { username: u }; });
+                return await dbFuns.getMultipleEditors(dsn, doc.editorIds);
             }
         }
     })
@@ -43,7 +39,8 @@ const EditorType = new GraphQLObjectType({
     name: 'DocumentEditor',
     description: 'Represents a text document editor.',
     fields: () => ({
-        username: { type: GraphQLNonNull(GraphQLString) }
+        username: { type: GraphQLNonNull(GraphQLString) },
+        id: { type: GraphQLNonNull(GraphQLString) }
     })
 });
 
@@ -92,7 +89,7 @@ export const RootQueryType = new GraphQLObjectType({
             type: new GraphQLList(EditorType),
             description: 'List of all editors',
             resolve: async () => {
-                return await dbFuns.listUsernames(dsn);
+                return await dbFuns.listEditors(dsn);
             }
         }
     })
@@ -122,7 +119,7 @@ export const RootMutationType = new GraphQLObjectType({
                 );
 
                 const returnDoc: TextDocument = {
-                    _id: generatedDocId,
+                    id: generatedDocId,
                     ...newDoc
                 };
 
@@ -144,7 +141,7 @@ export const RootMutationType = new GraphQLObjectType({
                     throw new InvalidIdException('Specified document ID is invalid');
                 }
                 const updatedDoc: TextDocument = {
-                    _id: args.id,
+                    id: args.id,
                     title: args.title,
                     body: args.body,
                     ownerId: args.ownerId,

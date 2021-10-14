@@ -97,7 +97,7 @@ router.put('/document/:id', async function(
         return;
     }
     const updatedDoc: TextDocument = {
-        _id: req.params.id,
+        id: req.params.id,
         title: req.body.title,
         body: req.body.body,
         ownerId: req.body.ownerId,
@@ -137,7 +137,7 @@ router.post('/document', async function(
     const sendResult: string = await dbFuns.sendDocToCollection(dsn, colName, newDoc);
 
     const returnDoc = {
-        _id: sendResult,
+        id: sendResult,
         title: req.body.title,
         body: req.body.body
     };

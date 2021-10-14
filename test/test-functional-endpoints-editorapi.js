@@ -82,7 +82,7 @@ describe('Editor API', () => {
               .end((err, res) => {
                   res.should.have.status(200);
                   res.body.should.be.an("object");
-                  res.body._id.should.be.an('string');
+                  res.body.id.should.be.an('string');
                   res.body.title.should.equal(testDoc.title);
                   res.body.body.should.equal(testDoc.body);
 
@@ -108,7 +108,7 @@ describe('Editor API', () => {
 
   describe('GET /editor-api/document/:id', () => {
     it(
-      'should return object with corresponding _id since passed id is valid', 
+      'should return object with corresponding id since passed id is valid', 
       async () => {
         const testDoc = {
           'title': 'Pocahontas',
@@ -144,7 +144,7 @@ describe('Editor API', () => {
 
   describe('PUT /editor-api/document/:id', () => {
     it(
-      'should return updated object with corresponding _id since passed id is valid ' +
+      'should return updated object with corresponding id since passed id is valid ' +
       'and correct new title/body are included', 
       async () => {
         const testDoc = {
