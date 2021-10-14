@@ -7,6 +7,7 @@ import { InvalidIdException } from '../exceptions/InvalidIdException.js';
 import { TextDocument } from '../interfaces/TextDocument.js';
 import { isValidId } from '../util/util.js';
 import { DocumentNotFoundException } from '../exceptions/DocumentNotFoundException.js';
+import { NoIdDocument } from '../interfaces/NoIdDocument.js';
 
 const docColName = 'editorDocs';
 
@@ -92,6 +93,77 @@ export const RootQueryType = new GraphQLObjectType({
             description: 'List of all editors',
             resolve: async () => {
                 return await dbFuns.listUsernames(dsn);
+            }
+        }
+    })
+});
+
+export const RootMutationType = new GraphQLObjectType({
+    name: 'Mutation',
+    description: 'Root Mutation',
+    fields: () => ({
+        createDocument: {
+            type: TextDocumentType,
+            description: 'Create new document',
+            args: {
+                title: { type: GraphQLNonNull(GraphQLString) },
+                body: { type: GraphQLNonNull(GraphQLString) },
+                ownerId: { type: GraphQLNonNull(GraphQLString) }
+            },
+            resolve: async (parent, args) => {
+                const newDoc: NoIdDocument = {
+                    title: args.title,
+                    body: args.body,
+                    ownerId: args.ownerId,
+                    editorIds: []
+                };
+                const generatedDocId: string = await dbFuns.sendDocToCollection(
+                    dsn, docColName, newDoc
+                );
+
+                const returnDoc: TextDocument = {
+                    _id: generatedDocId,
+                    ...newDoc
+                };
+
+                return returnDoc;
+            }
+        },
+        updateDocument: {
+            type: TextDocumentType,
+            description: 'Update a document',
+            args: {
+                id: { type: GraphQLNonNull(GraphQLString) },
+                title: { type: GraphQLNonNull(GraphQLString) },
+                body: { type: GraphQLNonNull(GraphQLString) },
+                ownerId: { type: GraphQLNonNull(GraphQLString) },
+                editorIds: { type: GraphQLList(GraphQLString) }
+            },
+            resolve: async (parent, args) => {
+                if (!isValidId(args.id)) {
+                    throw new InvalidIdException('Specified document ID is invalid');
+                }
+                const updatedDoc: TextDocument = {
+                    _id: args.id,
+                    title: args.title,
+                    body: args.body,
+                    ownerId: args.ownerId,
+                    editorIds: args.editorIds
+                };
+
+                try {
+                    await dbFuns.updateSingleDocInCollection(
+                        dsn, docColName, updatedDoc
+                    );
+                } catch (e) {
+                    if (e instanceof DocumentNotFoundException) {
+                        throw new DocumentNotFoundException('Document with matching ID not found.');
+                    } else {
+                        throw e;
+                    }
+                }
+
+                return updatedDoc;
             }
         }
     })

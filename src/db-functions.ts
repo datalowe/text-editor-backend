@@ -6,6 +6,7 @@ import { NoIdDocument } from './interfaces/NoIdDocument';
 import { TextDocument } from './interfaces/TextDocument';
 import { LoginCredentials } from './interfaces/LoginCredentials';
 import { UserNotFoundException } from './exceptions/UserNotFoundException.js';
+import { DatabaseException } from './exceptions/DatabaseException.js';
 import { IncorrectPasswordException } from './exceptions/IncorrectPasswordException.js';
 import { DocumentNotFoundException } from './exceptions/DocumentNotFoundException.js';
 import { mongoDocToTextDoc } from './util/util.js';
@@ -181,7 +182,7 @@ async function updateSingleDocInCollection(
     dsn: string,
     colName: string,
     updatedDoc: TextDocument
-): Promise<mongodb.Document> {
+): Promise<void> {
     if (process.env.NODE_ENV === 'test') {
         dsn = process.env.MONGO_URI;
     }
@@ -203,7 +204,12 @@ async function updateSingleDocInCollection(
 
     await client.close();
 
-    return res;
+    if (res == null) {
+        throw new DatabaseException('Something went wrong with update request to database.');
+    }
+    if (res.modifiedCount === 0) {
+        throw new DocumentNotFoundException('No matching document could be found.');
+    }
 }
 
 /**

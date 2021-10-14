@@ -96,7 +96,6 @@ router.put('/document/:id', async function(
         res.statusCode = 400;
         return;
     }
-
     const updatedDoc: TextDocument = {
         _id: req.params.id,
         title: req.body.title,
@@ -104,16 +103,19 @@ router.put('/document/:id', async function(
         ownerId: req.body.ownerId,
         editorIds: req.body.editorIds
     };
-    const sendResult: mongodb.Document = await dbFuns.updateSingleDocInCollection(
-        dsn,
-        colName,
-        updatedDoc
-    );
 
-    if (('acknowledged' in sendResult) && sendResult.acknowledged) {
+    try {
+        await dbFuns.updateSingleDocInCollection(
+            dsn, colName, updatedDoc
+        );
+
         res.json(updatedDoc);
-    } else {
-        res.json(sendResult);
+    } catch (e) {
+        if (e instanceof DocumentNotFoundException) {
+            res.json({ error: 'document_not_found' });
+        } else {
+            res.json({ error: 'internal_error' });
+        }
     }
 });
 
