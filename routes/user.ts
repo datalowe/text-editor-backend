@@ -4,6 +4,8 @@ import express from 'express';
 import { dsn } from '../app.js';
 import { isLoginCredentials } from '../src/interfaces/LoginCredentials.js';
 import jwt from 'jsonwebtoken';
+import { UserNotFoundException } from '../src/exceptions/userNotFoundException.js';
+import { IncorrectPasswordException } from '../src/exceptions/IncorrectPasswordException.js';
 
 const router: express.Router = express.Router();
 
@@ -29,19 +31,29 @@ router.post('/login', async function(
         res.json({ error: 'invalid_credentials' });
         return;
     }
-    const isValidLogin: boolean = await dbFuns.checkUserCredentials(dsn, req.body);
+    let userId: string = '';
 
-    if (isValidLogin) {
-        const token: jwt.Secret = jwt.sign(
-            { username: req.body.username },
-            process.env.JWT_SECRET,
-            { expiresIn: '1h' }
-        );
-
-        res.json({ token: token });
+    try {
+        userId = await dbFuns.getUserId(dsn, req.body);
+    } catch (e) {
+        if (e instanceof UserNotFoundException || e instanceof IncorrectPasswordException) {
+            res.json({ error: 'invalid_credentials' });
+            return;
+        }
+        res.json({ error: 'internal_error' });
         return;
     }
-    res.json({ error: 'invalid_credentials' });
+
+    const token: jwt.Secret = jwt.sign(
+        {
+            username: req.body.username,
+            userId: userId
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+    );
+
+    res.json({ token: token });
 });
 
 // only allow users with a valid access token to access list of

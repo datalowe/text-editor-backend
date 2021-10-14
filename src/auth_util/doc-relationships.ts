@@ -8,11 +8,11 @@ import jwt from 'jsonwebtoken';
 const docColName: string = 'editorDocs';
 
 export async function isDocumentOwner(
-    username: string,
+    userId: string,
     doc: TextDocument,
     dbCheck: boolean = true
 ): Promise<boolean> {
-    if (doc.owner !== username) {
+    if (doc.ownerId !== userId) {
         return false;
     }
 
@@ -20,10 +20,11 @@ export async function isDocumentOwner(
         const dbDoc: mongodb.Document = await getSingleDocInCollection(
             dsn,
             docColName,
-            doc._id
+            doc._id,
+            userId
         );
 
-        if (username !== dbDoc.owner) {
+        if (userId !== dbDoc.ownerId) {
             return false;
         }
     }
@@ -32,11 +33,11 @@ export async function isDocumentOwner(
 }
 
 export async function isDocumentEditor(
-    username: string,
+    userId: string,
     doc: TextDocument,
     dbCheck: boolean = true
 ): Promise<boolean> {
-    if (!(username in doc.editors)) {
+    if (!(userId in doc.editorIds)) {
         return false;
     }
 
@@ -44,10 +45,11 @@ export async function isDocumentEditor(
         const dbDoc: mongodb.Document = await getSingleDocInCollection(
             dsn,
             docColName,
-            doc._id
+            doc._id,
+            userId
         );
 
-        if (!(username in dbDoc.editors)) {
+        if (!(userId in dbDoc.editors)) {
             return false;
         }
     }
@@ -56,12 +58,12 @@ export async function isDocumentEditor(
 }
 
 export async function hasDocumentAccess(
-    username: string,
+    userId: string,
     doc: TextDocument,
     dbCheck: boolean = true
 ): Promise<boolean> {
-    const isOwner: boolean = await isDocumentOwner(username, doc, dbCheck);
-    const isEditor: boolean = await isDocumentEditor(username, doc, dbCheck);
+    const isOwner: boolean = await isDocumentOwner(userId, doc, dbCheck);
+    const isEditor: boolean = await isDocumentEditor(userId, doc, dbCheck);
 
     return isOwner || isEditor;
 }
@@ -93,7 +95,21 @@ export function extractUsername(
 
     const decodedToken = jwt.decode(token, { json: true });
 
-    const username = decodedToken.username;
+    return decodedToken.username;
+}
 
-    return username;
+export function extractUserId(
+    req: express.Request
+): string {
+    let token: string;
+
+    if (typeof req.headers['x-access-token'] === 'string') {
+        token = req.headers['x-access-token'];
+    } else {
+        token = req.headers['x-access-token'][0];
+    }
+
+    const decodedToken = jwt.decode(token, { json: true });
+
+    return decodedToken.userId;
 }

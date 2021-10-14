@@ -1,20 +1,20 @@
 export interface NoIdDocument {
     title: string,
     body: string,
-    owner: string,
-    editors: string[]
+    ownerId: string,
+    editorIds: string[]
 }
 
 export function isNoIdDocument(arg: any): arg is NoIdDocument {
     if (typeof arg !== 'object') {
         return false;
     }
-    (['title', 'body', 'owner', 'editors']).forEach(propKey => {
+    (['title', 'body', 'ownerId', 'editorIds']).forEach(propKey => {
         if (!(propKey in arg)) {
             return false;
         }
     });
-    if (!(arg.editors instanceof Array)) {
+    if (!(arg.editorIds instanceof Array)) {
         return false;
     }
     return true;

@@ -5,12 +5,20 @@ export function mongoDocToTextDoc(
     mongoDoc: mongodb.Document
 ): TextDocument {
     const textDoc: TextDocument = {
-        owner: mongoDoc.owner,
+        ownerId: mongoDoc.ownerId,
         _id: mongoDoc._id,
-        editors: mongoDoc.editors,
+        editorIds: mongoDoc.editorIds,
         title: mongoDoc.title,
         body: mongoDoc.body
     };
 
     return textDoc;
+}
+
+// check if passed id is a valid document id (standard mongoDB
+// auto-generated id)
+export function isValidId(
+    id: any
+): boolean {
+    return typeof id === 'string' && id.length === 24;
 }

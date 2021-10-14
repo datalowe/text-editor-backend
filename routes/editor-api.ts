@@ -7,7 +7,11 @@ import { isNoIdDocument, NoIdDocument } from '../src/interfaces/NoIdDocument.js'
 import { dsn } from '../app.js';
 import jwt from 'jsonwebtoken';
 import * as docRel from '../src/auth_util/doc-relationships.js';
-import { mongoDocToTextDoc } from '../src/util/util.js';
+import { graphqlHTTP } from 'express-graphql';
+import { graphSchema } from '../src/graphql/graphql-schema.js';
+import { UserIdRequest } from '../src/interfaces/UserIdRequest.js';
+import { DocumentNotFoundException } from '../src/exceptions/DocumentNotFoundException.js';
+import { isValidId } from '../src/util/util.js';
 
 const router: express.Router = express.Router();
 const colName: string = 'editorDocs';
@@ -15,7 +19,7 @@ const colName: string = 'editorDocs';
 // only allow users with a valid access token to access any of the
 // editor endpoints
 router.all('*', function(
-    req: express.Request,
+    req: UserIdRequest,
     res: express.Response,
     next: any
 ) {
@@ -30,52 +34,57 @@ router.all('*', function(
             res.json({ authentication_error: err });
             return;
         }
+        const userId: string = docRel.extractUserId(req);
+
+        req.userId = userId;
+
         next();
     });
 });
 
+// GraphQL endpoint
+router.use('/graphql', graphqlHTTP({
+    schema: graphSchema,
+    graphiql: process.env.ENABLE_GRAPHIQL === 'true'
+}));
+
 router.get('/document', async function(
-    req: express.Request,
+    req: UserIdRequest,
     res: express.Response
 ) {
-    const username: string = docRel.extractUsername(req);
-
     const searchResult: mongodb.Document[] = await dbFuns.getRelatedDocsInCollection(
         dsn,
         colName,
-        username
+        req.userId
     );
 
     res.json(searchResult);
 });
 
 router.get('/document/:id', async function(
-    req: express.Request,
+    req: UserIdRequest,
     res: express.Response
 ) {
-    if ((typeof req.params.id === 'string') && (req.params.id.length === 24)) {
-        const username = docRel.extractUsername(req);
-        const searchResult: mongodb.Document | null = await dbFuns.getSingleDocInCollection(
+    if (!isValidId(req.params.id)) {
+        res.json({ error: 'invalid_id' });
+        return;
+    }
+    try {
+        const searchResult: TextDocument = await dbFuns.getSingleDocInCollection(
             dsn,
             colName,
-            req.params.id
+            req.params.id,
+            req.userId
         );
 
-        if (searchResult == null) {
+        res.json(searchResult);
+    } catch (e) {
+        if (e instanceof DocumentNotFoundException) {
             res.json({ error: 'matching_document_not_found' });
             return;
         }
-
-        const textDoc: TextDocument = mongoDocToTextDoc(searchResult);
-
-        if (!docRel.hasDocumentAccess(username, textDoc, false)) {
-            res.json({ error: 'user_does_not_have_access_to_document' });
-            return;
-        }
-
-        res.json(searchResult);
+        res.json({ error: 'internal_error' });
     }
-    res.json({ error: 'invalid_id' });
 });
 
 router.put('/document/:id', async function(
@@ -92,8 +101,8 @@ router.put('/document/:id', async function(
         _id: req.params.id,
         title: req.body.title,
         body: req.body.body,
-        owner: req.body.owner,
-        editors: req.body.editors
+        ownerId: req.body.ownerId,
+        editorIds: req.body.editorIds
     };
     const sendResult: mongodb.Document = await dbFuns.updateSingleDocInCollection(
         dsn,
@@ -120,8 +129,8 @@ router.post('/document', async function(
     const newDoc: NoIdDocument = {
         title: req.body.title,
         body: req.body.body,
-        owner: req.body.owner,
-        editors: req.body.editors
+        ownerId: req.body.ownerId,
+        editorIds: req.body.editorIds
     };
     const sendResult: string = await dbFuns.sendDocToCollection(dsn, colName, newDoc);
 
