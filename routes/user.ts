@@ -4,7 +4,7 @@ import express from 'express';
 import { dsn } from '../app.js';
 import { isLoginCredentials } from '../src/interfaces/LoginCredentials.js';
 import jwt from 'jsonwebtoken';
-import { UserNotFoundException } from '../src/exceptions/userNotFoundException.js';
+import { UserNotFoundException } from '../src/exceptions/UserNotFoundException.js';
 import { IncorrectPasswordException } from '../src/exceptions/IncorrectPasswordException.js';
 
 const router: express.Router = express.Router();
