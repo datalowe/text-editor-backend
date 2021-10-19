@@ -78,7 +78,11 @@ const io: socketio.Server = new socketio.Server(httpServer, {
 
 io.sockets.on('connection', function(socket) {
     socket.on('createRoom', function(room) {
-        socket.join(room.toString());
+        if (room) {
+            socket.join(room.toString());
+        } else {
+            console.log('invalid request: socket.io request to create room without room ID');
+        }
     });
 
     socket.on('leaveRoom', (room) => {
