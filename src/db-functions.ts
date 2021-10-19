@@ -59,13 +59,13 @@ async function sendDocToCollection(
   *
   * @throws Error when database operation fails.
   *
-  * @return {Promise<mongodb.Document[]>} Array of documents in collection.
+  * @return {Promise<TextDocument[]>} Array of documents in collection.
   */
 async function getRelatedDocsInCollection(
     dsn: string,
     colName: string,
     userId: string
-): Promise<mongodb.Document[]> {
+): Promise<TextDocument[]> {
     if (process.env.NODE_ENV === 'test') {
         dsn = process.env.MONGO_URI;
     }
@@ -85,7 +85,7 @@ async function getRelatedDocsInCollection(
 
     await client.close();
 
-    return res;
+    return res.map(doc => mongoDocToTextDoc(doc));
 }
 
 /**
