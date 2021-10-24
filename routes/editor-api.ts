@@ -1,5 +1,4 @@
 'use strict';
-import mongodb from 'mongodb';
 import * as dbFuns from '../src/db-functions.js';
 import express from 'express';
 import { TextDocument } from '../src/interfaces/TextDocument.js';
@@ -11,7 +10,8 @@ import { graphqlHTTP } from 'express-graphql';
 import { graphSchema } from '../src/graphql/graphql-schema.js';
 import { UserIdRequest } from '../src/interfaces/UserIdRequest.js';
 import { DocumentNotFoundException } from '../src/exceptions/DocumentNotFoundException.js';
-import { isValidId } from '../src/util/util.js';
+import { isValidId, textDocToPDFTemplate } from '../src/util/util.js';
+import { create as pdfCreate } from 'html-pdf';
 
 const router: express.Router = express.Router();
 const colName: string = 'editorDocs';
@@ -52,13 +52,47 @@ router.get('/document', async function(
     req: UserIdRequest,
     res: express.Response
 ) {
-    const searchResult: mongodb.Document[] = await dbFuns.getRelatedDocsInCollection(
+    const searchResult: TextDocument[] = await dbFuns.getRelatedDocsInCollection(
         dsn,
         colName,
         req.userId
     );
 
     res.json(searchResult);
+});
+
+router.get('/document/:id/pdf', async function(
+    req: UserIdRequest,
+    res: express.Response
+) {
+    if (!isValidId(req.params.id)) {
+        res.json({ error: 'invalid_id' });
+        return;
+    }
+    try {
+        const searchResult: TextDocument = await dbFuns.getSingleDocInCollection(
+            dsn,
+            colName,
+            req.params.id,
+            req.userId
+        );
+
+        pdfCreate(textDocToPDFTemplate(searchResult)).toStream(
+            (err: any, stream: any) => {
+                if (err) {
+                    return res.end(err.stack);
+                }
+                res.setHeader('Content-type', 'application/pdf');
+                stream.pipe(res);
+            }
+        );
+    } catch (e) {
+        if (e instanceof DocumentNotFoundException) {
+            res.json({ error: 'matching_document_not_found' });
+            return;
+        }
+        res.json({ error: 'internal_error' });
+    }
 });
 
 router.get('/document/:id', async function(

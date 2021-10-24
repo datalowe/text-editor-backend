@@ -34,3 +34,11 @@ export function mongoDocToEditor(
 
     return editor;
 }
+
+export function textDocToPDFTemplate(
+    doc: TextDocument
+): string {
+    const docTemplate = `<h1 style="text-align: center;">${doc.title}</h1>` + doc.body;
+
+    return docTemplate;
+}
