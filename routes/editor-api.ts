@@ -2,7 +2,6 @@
 import * as dbFuns from '../src/db-functions.js';
 import express from 'express';
 import { TextDocument } from '../src/interfaces/TextDocument.js';
-import { isNoIdDocument, NoIdDocument } from '../src/interfaces/NoIdDocument.js';
 import { dsn } from '../app.js';
 import jwt from 'jsonwebtoken';
 import * as docRel from '../src/auth_util/doc-relationships.js';
@@ -48,19 +47,6 @@ router.use('/graphql', graphqlHTTP({
     graphiql: process.env.ENABLE_GRAPHIQL === 'true'
 }));
 
-router.get('/document', async function(
-    req: UserIdRequest,
-    res: express.Response
-) {
-    const searchResult: TextDocument[] = await dbFuns.getRelatedDocsInCollection(
-        dsn,
-        colName,
-        req.userId
-    );
-
-    res.json(searchResult);
-});
-
 router.get('/document/:id/pdf', async function(
     req: UserIdRequest,
     res: express.Response
@@ -93,90 +79,6 @@ router.get('/document/:id/pdf', async function(
         }
         res.json({ error: 'internal_error' });
     }
-});
-
-router.get('/document/:id', async function(
-    req: UserIdRequest,
-    res: express.Response
-) {
-    if (!isValidId(req.params.id)) {
-        res.json({ error: 'invalid_id' });
-        return;
-    }
-    try {
-        const searchResult: TextDocument = await dbFuns.getSingleDocInCollection(
-            dsn,
-            colName,
-            req.params.id,
-            req.userId
-        );
-
-        res.json(searchResult);
-    } catch (e) {
-        if (e instanceof DocumentNotFoundException) {
-            res.json({ error: 'matching_document_not_found' });
-            return;
-        }
-        res.json({ error: 'internal_error' });
-    }
-});
-
-router.put('/document/:id', async function(
-    req: express.Request,
-    res: express.Response
-) {
-    if (!isNoIdDocument(req.body)) {
-        res.json({ error: 'invalid_data' });
-        res.statusCode = 400;
-        return;
-    }
-    const updatedDoc: TextDocument = {
-        id: req.params.id,
-        title: req.body.title,
-        body: req.body.body,
-        ownerId: req.body.ownerId,
-        editorIds: req.body.editorIds
-    };
-
-    try {
-        await dbFuns.updateSingleDocInCollection(
-            dsn, colName, updatedDoc
-        );
-
-        res.json(updatedDoc);
-    } catch (e) {
-        if (e instanceof DocumentNotFoundException) {
-            res.json({ error: 'document_not_found' });
-        } else {
-            res.json({ error: 'internal_error' });
-        }
-    }
-});
-
-router.post('/document', async function(
-    req: express.Request,
-    res: express.Response
-) {
-    if (!isNoIdDocument(req.body)) {
-        res.json({ error: 'invalid_data' });
-        res.statusCode = 400;
-        return;
-    }
-    const newDoc: NoIdDocument = {
-        title: req.body.title,
-        body: req.body.body,
-        ownerId: req.body.ownerId,
-        editorIds: req.body.editorIds
-    };
-    const sendResult: string = await dbFuns.sendDocToCollection(dsn, colName, newDoc);
-
-    const returnDoc = {
-        id: sendResult,
-        title: req.body.title,
-        body: req.body.body
-    };
-
-    res.json(returnDoc);
 });
 
 export const editorRouter = router;
