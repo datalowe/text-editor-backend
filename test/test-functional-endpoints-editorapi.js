@@ -6,7 +6,7 @@ import chaiHttp from 'chai-http';
 import jwt from 'jsonwebtoken';
 
 import { server } from '../dist/app.js';
-import { sendDocToCollection, createUser } from '../dist/src/db-functions.js';
+import { sendDocToCollection, createUser } from '../dist/src/db/db-functions.js';
 
 const genericUserName = 'genericUser';
 const genericUserId = 'genericId1488242kn2342';

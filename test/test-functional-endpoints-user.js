@@ -5,7 +5,7 @@ import chai from 'chai';
 import chaiHttp from 'chai-http';
 
 import { server } from '../dist/app.js';
-import { sendDocToCollection, createUser } from '../dist/src/db-functions.js';
+import { sendDocToCollection, createUser } from '../dist/src/db/db-functions.js';
 
 let mongoServer;
 
@@ -36,7 +36,8 @@ describe('user API', () => {
             .post('/user/register')
             .type('application/json')
             .send(testUser);
-          res.body.should.be.an('boolean');
+          res.body.should.be.an('object');
+          res.body.should.have.property('success');
         }
       );
   

@@ -2,15 +2,16 @@
 import bcrypt from 'bcryptjs';
 import mongodb from 'mongodb';
 
-import { NoIdDocument } from './interfaces/NoIdDocument';
-import { TextDocument } from './interfaces/TextDocument';
-import { LoginCredentials } from './interfaces/LoginCredentials';
-import { UserNotFoundException } from './exceptions/UserNotFoundException.js';
-import { DatabaseException } from './exceptions/DatabaseException.js';
-import { IncorrectPasswordException } from './exceptions/IncorrectPasswordException.js';
-import { DocumentNotFoundException } from './exceptions/DocumentNotFoundException.js';
-import { mongoDocToEditor, mongoDocToTextDoc } from './util/util.js';
-import { Editor } from './interfaces/Editor';
+import { NoIdDocument } from '../interfaces/NoIdDocument';
+import { TextDocument } from '../interfaces/TextDocument';
+import { LoginCredentials } from '../interfaces/LoginCredentials';
+import { UserNotFoundException } from '../exceptions/UserNotFoundException.js';
+import { DatabaseException } from '../exceptions/DatabaseException.js';
+import { IncorrectPasswordException } from '../exceptions/IncorrectPasswordException.js';
+import { DocumentNotFoundException } from '../exceptions/DocumentNotFoundException.js';
+import { mongoDocToEditor, mongoDocToTextDoc } from '../util/util.js';
+import { Editor } from '../interfaces/Editor';
+import { getMongoClientCollection } from './db-helpers.js';
 
 const numSaltRounds = 10;
 const userColName: string = 'editorUsers';
@@ -33,13 +34,7 @@ async function sendDocToCollection(
     colName: string,
     newDoc: NoIdDocument
 ): Promise<string> {
-    if (process.env.NODE_ENV === 'test') {
-        dsn = process.env.MONGO_URI;
-    }
-
-    const client: mongodb.MongoClient = await mongodb.MongoClient.connect(dsn);
-    const db: mongodb.Db = client.db();
-    const col: mongodb.Collection = db.collection(colName);
+    const [client, col] = await getMongoClientCollection(dsn, colName);
     const res: mongodb.Document = await col.insertOne(newDoc);
 
     await client.close();
@@ -66,12 +61,7 @@ async function getRelatedDocsInCollection(
     colName: string,
     userId: string
 ): Promise<TextDocument[]> {
-    if (process.env.NODE_ENV === 'test') {
-        dsn = process.env.MONGO_URI;
-    }
-    const client: mongodb.MongoClient = await mongodb.MongoClient.connect(dsn);
-    const db: mongodb.Db = client.db();
-    const col: mongodb.Collection = db.collection(colName);
+    const [client, col] = await getMongoClientCollection(dsn, colName);
     const res: mongodb.Document[] = await col.find({
         $or: [
             {
@@ -109,12 +99,7 @@ async function getSingleDocInCollection(
     docId: string,
     userId: string
 ): Promise<TextDocument> {
-    if (process.env.NODE_ENV === 'test') {
-        dsn = process.env.MONGO_URI;
-    }
-    const client: mongodb.MongoClient = await mongodb.MongoClient.connect(dsn);
-    const db: mongodb.Db = client.db();
-    const col: mongodb.Collection = db.collection(colName);
+    const [client, col] = await getMongoClientCollection(dsn, colName);
     const res: mongodb.Document = await col.findOne({
         _id: new mongodb.ObjectId(docId),
         $or: [
@@ -155,12 +140,7 @@ async function updateSingleDocInCollection(
     colName: string,
     updatedDoc: TextDocument
 ): Promise<void> {
-    if (process.env.NODE_ENV === 'test') {
-        dsn = process.env.MONGO_URI;
-    }
-    const client: mongodb.MongoClient = await mongodb.MongoClient.connect(dsn);
-    const db: mongodb.Db = client.db();
-    const col: mongodb.Collection = db.collection(colName);
+    const [client, col] = await getMongoClientCollection(dsn, colName);
     const res: mongodb.Document = await col.updateOne(
         {
             _id: new mongodb.ObjectId(updatedDoc.id)
@@ -200,14 +180,9 @@ async function createUser(
     dsn: string,
     userInfo: LoginCredentials
 ): Promise<string> {
-    if (process.env.NODE_ENV === 'test') {
-        dsn = process.env.MONGO_URI;
-    }
+    const [client, col] = await getMongoClientCollection(dsn, userColName);
 
     const hashedPassword = await bcrypt.hash(userInfo.password, numSaltRounds);
-    const client: mongodb.MongoClient = await mongodb.MongoClient.connect(dsn);
-    const db: mongodb.Db = client.db();
-    const col: mongodb.Collection = db.collection(userColName);
 
     const createdUser: mongodb.Document = await col.insertOne({
         username: userInfo.username,
@@ -236,13 +211,7 @@ async function getUserId(
     dsn: string,
     userInfo: LoginCredentials
 ): Promise<string> {
-    if (process.env.NODE_ENV === 'test') {
-        dsn = process.env.MONGO_URI;
-    }
-
-    const client: mongodb.MongoClient = await mongodb.MongoClient.connect(dsn);
-    const db: mongodb.Db = client.db();
-    const col: mongodb.Collection = db.collection(userColName);
+    const [client, col] = await getMongoClientCollection(dsn, userColName);
 
     const dbRes: mongodb.Document = await col.findOne({
         username: userInfo.username
@@ -279,13 +248,7 @@ async function getSingleEditor(
     dsn: string,
     userId: string
 ): Promise<Editor> {
-    if (process.env.NODE_ENV === 'test') {
-        dsn = process.env.MONGO_URI;
-    }
-
-    const client: mongodb.MongoClient = await mongodb.MongoClient.connect(dsn);
-    const db: mongodb.Db = client.db();
-    const col: mongodb.Collection = db.collection(userColName);
+    const [client, col] = await getMongoClientCollection(dsn, userColName);
 
     const dbRes: mongodb.Document = await col.findOne({
         _id: new mongodb.ObjectId(userId)
@@ -316,13 +279,7 @@ async function getMultipleEditors(
     dsn: string,
     userIds: string[]
 ): Promise<Editor[]> {
-    if (process.env.NODE_ENV === 'test') {
-        dsn = process.env.MONGO_URI;
-    }
-
-    const client: mongodb.MongoClient = await mongodb.MongoClient.connect(dsn);
-    const db: mongodb.Db = client.db();
-    const col: mongodb.Collection = db.collection(userColName);
+    const [client, col] = await getMongoClientCollection(dsn, userColName);
 
     const editorDocs: mongodb.Document[] = await col.find({
         _id: {
@@ -349,13 +306,7 @@ async function getMultipleEditors(
 async function listUsernames(
     dsn: string
 ): Promise<string[]> {
-    if (process.env.NODE_ENV === 'test') {
-        dsn = process.env.MONGO_URI;
-    }
-
-    const client: mongodb.MongoClient = await mongodb.MongoClient.connect(dsn);
-    const db: mongodb.Db = client.db();
-    const col: mongodb.Collection = db.collection(userColName);
+    const [client, col] = await getMongoClientCollection(dsn, userColName);
 
     const userDocs: mongodb.Document[] = await col.find().toArray();
 
@@ -380,13 +331,7 @@ async function listUsernames(
 async function listEditors(
     dsn: string
 ): Promise<Editor[]> {
-    if (process.env.NODE_ENV === 'test') {
-        dsn = process.env.MONGO_URI;
-    }
-
-    const client: mongodb.MongoClient = await mongodb.MongoClient.connect(dsn);
-    const db: mongodb.Db = client.db();
-    const col: mongodb.Collection = db.collection(userColName);
+    const [client, col] = await getMongoClientCollection(dsn, userColName);
 
     const editorDocs: mongodb.Document[] = await col.find().toArray();
 

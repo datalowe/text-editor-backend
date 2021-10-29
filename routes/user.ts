@@ -1,11 +1,21 @@
 'use strict';
-import * as dbFuns from '../src/db-functions.js';
+import * as dbFuns from '../src/db/db-functions.js';
 import express from 'express';
 import { dsn } from '../app.js';
 import { isLoginCredentials } from '../src/interfaces/LoginCredentials.js';
 import jwt from 'jsonwebtoken';
 import { UserNotFoundException } from '../src/exceptions/UserNotFoundException.js';
 import { IncorrectPasswordException } from '../src/exceptions/IncorrectPasswordException.js';
+import { isRegistrationCredentials } from '../src/interfaces/RegistrationCredentials.js';
+import {
+    extractDocIdFromInvitationToken,
+    extractInviterIdFromInvitationToken
+} from '../src/util/auth_util/doc-relationships.js';
+import { TextDocument } from '../src/interfaces/TextDocument.js';
+import { DocumentNotFoundException } from '../src/exceptions/DocumentNotFoundException.js';
+import { InvalidTokenException } from '../src/exceptions/InvalidTokenException.js';
+
+const docColName: string = 'editorDocs';
 
 const router: express.Router = express.Router();
 
@@ -13,14 +23,46 @@ router.post('/register', async function(
     req: express.Request,
     res: express.Response
 ) {
-    if (!isLoginCredentials(req.body)) {
+    if (!isRegistrationCredentials(req.body)) {
         res.json({ error: 'invalid_credentials' });
         return;
     }
-    const creationResult: boolean = await dbFuns.createUser(dsn, req.body);
+    const createdUserId: string = await dbFuns.createUser(dsn, req.body);
+
+    if (req.body.invitation_code) {
+        try {
+            const docId: string = extractDocIdFromInvitationToken(req.body.invitation_code);
+            const inviterId: string = extractInviterIdFromInvitationToken(req.body.invitation_code);
+
+            const matchDoc: TextDocument = await dbFuns.getSingleDocInCollection(
+                dsn,
+                docColName,
+                docId,
+                inviterId
+            );
+
+            matchDoc.editorIds.push(createdUserId);
+
+            dbFuns.updateSingleDocInCollection(
+                dsn,
+                docColName,
+                matchDoc
+            );
+        } catch (e) {
+            if (e instanceof DocumentNotFoundException) {
+                res.json({ error: 'matching_document_not_found' });
+                return;
+            } else if (e instanceof InvalidTokenException) {
+                res.json({ error: 'invalid_invitation_code' });
+                return;
+            } else {
+                res.json({ error: 'internal_error' });
+            }
+        }
+    }
 
     res.statusCode = 201;
-    res.json(creationResult);
+    res.json({ success: 'user_created' });
 });
 
 router.post('/login', async function(

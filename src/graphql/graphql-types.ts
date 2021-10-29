@@ -1,7 +1,6 @@
 import { GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLString } from 'graphql';
-// import { TextDocument } from '../interfaces/TextDocument.js';
 
-import * as dbFuns from '../db-functions.js';
+import * as dbFuns from '../db/db-functions.js';
 import { dsn } from '../../app.js';
 import { InvalidIdException } from '../exceptions/InvalidIdException.js';
 import { TextDocument } from '../interfaces/TextDocument.js';

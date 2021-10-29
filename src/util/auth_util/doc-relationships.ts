@@ -1,9 +1,10 @@
-import { TextDocument } from '../interfaces/TextDocument.js';
-import { getSingleDocInCollection } from '../db-functions.js';
-import { dsn } from '../../app.js';
+import { TextDocument } from '../../interfaces/TextDocument.js';
+import { getSingleDocInCollection } from '../../db/db-functions.js';
+import { dsn } from '../../../app.js';
 import mongodb from 'mongodb';
 import express from 'express';
 import jwt from 'jsonwebtoken';
+import { InvalidTokenException } from '../../exceptions/InvalidTokenException.js';
 
 const docColName: string = 'editorDocs';
 
@@ -112,4 +113,26 @@ export function extractUserId(
     const decodedToken = jwt.decode(token, { json: true });
 
     return decodedToken.userId;
+}
+
+export function extractDocIdFromInvitationToken(
+    token: string
+): string {
+    const decodedToken = jwt.decode(token, { json: true });
+
+    if (!decodedToken.docId) {
+        throw new InvalidTokenException('Token does not include a docId.');
+    }
+    return decodedToken.docId;
+}
+
+export function extractInviterIdFromInvitationToken(
+    token: string
+): string {
+    const decodedToken = jwt.decode(token, { json: true });
+
+    if (!decodedToken.inviterId) {
+        throw new InvalidTokenException('Token does not include an inviterId.');
+    }
+    return decodedToken.inviterId;
 }

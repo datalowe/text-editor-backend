@@ -24,6 +24,18 @@ export function isValidId(
     return typeof id === 'string' && id.length === 24;
 }
 
+export function isValidEmail(
+    email: any
+): boolean {
+    if (typeof email !== 'string') {
+        return false;
+    }
+    if (!/[^@]+@[^@.]+\.[^@.]+/.test(email)) {
+        return false;
+    }
+    return true;
+}
+
 export function mongoDocToEditor(
     mongoDoc: mongodb.Document
 ): Editor {
