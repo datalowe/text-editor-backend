@@ -179,7 +179,7 @@ async function updateSingleDocInCollection(
     if (res == null) {
         throw new DatabaseException('Something went wrong with update request to database.');
     }
-    if (res.modifiedCount === 0) {
+    if (res.matchedCount === 0) {
         throw new DocumentNotFoundException('No matching document could be found.');
     }
 }
@@ -199,7 +199,7 @@ async function updateSingleDocInCollection(
 async function createUser(
     dsn: string,
     userInfo: LoginCredentials
-): Promise<boolean> {
+): Promise<string> {
     if (process.env.NODE_ENV === 'test') {
         dsn = process.env.MONGO_URI;
     }
@@ -209,14 +209,14 @@ async function createUser(
     const db: mongodb.Db = client.db();
     const col: mongodb.Collection = db.collection(userColName);
 
-    await col.insertOne({
+    const createdUser: mongodb.Document = await col.insertOne({
         username: userInfo.username,
         password: hashedPassword
     });
 
     await client.close();
 
-    return true;
+    return createdUser.insertedId.toString();
 }
 
 /**
