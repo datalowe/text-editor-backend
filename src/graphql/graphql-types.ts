@@ -19,6 +19,7 @@ const TextDocumentType = new GraphQLObjectType({
         body: { type: GraphQLNonNull(GraphQLString) },
         ownerId: { type: GraphQLNonNull(GraphQLString) },
         editorIds: { type: GraphQLList(GraphQLString) },
+        type: { type: GraphQLNonNull(GraphQLString) },
         owner: {
             type: EditorType,
             resolve: async (doc) => {
@@ -104,14 +105,16 @@ export const RootMutationType = new GraphQLObjectType({
             args: {
                 title: { type: GraphQLNonNull(GraphQLString) },
                 body: { type: GraphQLNonNull(GraphQLString) },
-                ownerId: { type: GraphQLNonNull(GraphQLString) }
+                ownerId: { type: GraphQLNonNull(GraphQLString) },
+                type: { type: GraphQLNonNull(GraphQLString) }
             },
             resolve: async (parent, args) => {
                 const newDoc: NoIdDocument = {
                     title: args.title,
                     body: args.body,
                     ownerId: args.ownerId,
-                    editorIds: []
+                    editorIds: [],
+                    type: args.type
                 };
                 const generatedDocId: string = await dbFuns.sendDocToCollection(
                     dsn, docColName, newDoc
@@ -144,7 +147,8 @@ export const RootMutationType = new GraphQLObjectType({
                     title: args.title,
                     body: args.body,
                     ownerId: args.ownerId,
-                    editorIds: args.editorIds
+                    editorIds: args.editorIds,
+                    type: args.type
                 };
 
                 try {

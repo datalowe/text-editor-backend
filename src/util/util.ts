@@ -10,7 +10,8 @@ export function mongoDocToTextDoc(
         id: mongoDoc._id,
         editorIds: mongoDoc.editorIds,
         title: mongoDoc.title,
-        body: mongoDoc.body
+        body: mongoDoc.body,
+        type: mongoDoc.type
     };
 
     return textDoc;
