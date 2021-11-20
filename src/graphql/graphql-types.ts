@@ -136,7 +136,8 @@ export const RootMutationType = new GraphQLObjectType({
                 title: { type: GraphQLNonNull(GraphQLString) },
                 body: { type: GraphQLNonNull(GraphQLString) },
                 ownerId: { type: GraphQLNonNull(GraphQLString) },
-                editorIds: { type: GraphQLList(GraphQLString) }
+                editorIds: { type: GraphQLList(GraphQLString) },
+                type: { type: GraphQLNonNull(GraphQLString) }
             },
             resolve: async (parent, args) => {
                 if (!isValidId(args.id)) {
