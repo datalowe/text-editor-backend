@@ -217,11 +217,11 @@ async function getUserId(
         username: userInfo.username
     });
 
+    await client.close();
+
     if (!dbRes) {
         throw new UserNotFoundException('User not found.');
     }
-
-    await client.close();
 
     const isValid: boolean = await bcrypt.compare(userInfo.password, dbRes.password);
 
@@ -254,11 +254,11 @@ async function getSingleEditor(
         _id: new mongodb.ObjectId(userId)
     });
 
+    await client.close();
+
     if (!dbRes) {
         throw new UserNotFoundException('User not found.');
     }
-
-    await client.close();
 
     return mongoDocToEditor(dbRes);
 }
