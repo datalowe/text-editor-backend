@@ -107,7 +107,10 @@ router.get('/list', function(
 ) {
     let token: string;
 
-    if (typeof req.headers['x-access-token'] === 'string') {
+    if (req.headers['x-access-token'] === undefined) {
+        res.json({ authentication_error: 'missing x-access-token header' });
+        return;
+    } else if (typeof req.headers['x-access-token'] === 'string') {
         token = req.headers['x-access-token'];
     } else {
         token = req.headers['x-access-token'][0];
