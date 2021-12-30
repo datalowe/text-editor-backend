@@ -22,6 +22,11 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '14.x'
+      
+      - name: install phantomjs
+        run: |
+          sudo apt-get update
+          sudo apt-get install
 
       - name: npm install, build, and test
         run: |
