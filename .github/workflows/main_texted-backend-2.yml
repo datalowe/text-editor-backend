@@ -23,10 +23,10 @@ jobs:
         with:
           node-version: '14.x'
       
-      # - name: install phantomjs
-      #   run: |
-      #     apt-get update
-      #     apt-get install phantomjs
+      - name: install phantomjs
+        run: |
+          sudo apt-get update
+          sudo apt-get install phantomjs
 
       - name: npm install, build, and test
         run: |
