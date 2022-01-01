@@ -25,8 +25,8 @@ jobs:
       
       - name: install phantomjs
         run: |
-          sudo apt-get update
-          sudo apt-get install
+          apt-get update
+          apt-get install phantomjs
 
       - name: npm install, build, and test
         run: |
