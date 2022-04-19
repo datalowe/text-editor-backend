@@ -1,7 +1,11 @@
 # TextEditor: Express Backend
 [![Build Status](https://app.travis-ci.com/datalowe/text-editor-backend.svg?branch=main)](https://app.travis-ci.com/datalowe/text-editor-backend)
 
-This is an [Express](https://expressjs.com) project which is to serve API requests from a text editor app, like [this one](https://github.com/datalowe/text-editor-angular). Express in turn relies on a [MongoDB](https://www.mongodb.com/) database for data storage.
+<img width="800px" alt="An animated demonstration of collaborating on running code editor examples." src="./readme_examples/text_editor_demo.gif">
+
+<img width="600px" alt="An example screenshot of the editor's code mode." src="./readme_examples/text_code_editor_example.png">
+
+This is an [Express](https://expressjs.com) project which is to serve API requests from a text editor app, like [this one](https://github.com/datalowe/text-editor-angular) (which is also what's demonstrated above). Express in turn relies on a [MongoDB](https://www.mongodb.com/) database for data storage.
 
 The project is put together for a JavaScript framework course at Blekinge Institute of Technology.
 
